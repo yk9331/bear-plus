@@ -76,3 +76,7 @@ cert
 
 # artillery
 artillery*
+
+# Webpack Build file
+public/build
+public/views/build
