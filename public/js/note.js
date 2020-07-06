@@ -1,5 +1,16 @@
 import * as SimpleMDE from 'simplemde';
 
-const simplemde = new SimpleMDE();
+const simplemde = new SimpleMDE({
+  element: $('editor')[0],
+  autoDownloadFontAwesome: true,
+  autofocus: true,
+  indentWithTabs: true,
+  lineWrapping: true,
+  spellChecker: false,
+  toolbar: false,
+  status: false,
+});
 
-console.log(simplemde.value());
+simplemde.codemirror.on('change', () => {
+  console.log(simplemde.value());
+});
