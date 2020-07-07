@@ -11,7 +11,6 @@ module.exports = {
       path.join(__dirname, 'public/js/note.js'),
     ],
     'note-style': [
-      path.join(__dirname, 'node_modules/simplemde/dist/simplemde.min.css'),
       path.join(__dirname, 'public/css/note.css'),
     ],
   },
