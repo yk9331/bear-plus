@@ -1,31 +1,17 @@
-// schema {
 import { schema as baseSchema } from 'prosemirror-schema-basic';
 import { Schema, DOMParser } from 'prosemirror-model';
-// }
-// nodeview_start{
-import CodeMirror from 'codemirror';
 import { exitCode } from 'prosemirror-commands';
 import { undo, redo } from 'prosemirror-history';
-// }
-
-// arrowHandlers{
 import { keymap } from 'prosemirror-keymap';
-// }
-
-// editor{
 import { EditorState, Selection, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-
 import { exampleSetup } from 'prosemirror-example-setup';
-// }
 
+import markdownit from 'markdown-it';
+import { schema as markdownSchema, MarkdownParser, defaultMarkdownSerializer } from 'prosemirror-markdown';
+
+import CodeMirror from 'codemirror';
 import 'codemirror/mode/javascript/javascript';
-
-const baseNodes = baseSchema.spec.nodes;
-const schema = new Schema({
-  nodes: baseNodes.update('code_block', { ...baseNodes.get('code_block'), isolating: true }),
-  marks: baseSchema.spec.marks,
-});
 
 class CodeBlockView {
   constructor(node, view, getPos) {
@@ -52,7 +38,7 @@ class CodeBlockView {
     // inner editor
     this.updating = false;
     // Track whether changes are have been made but not yet propagated
-    this.cm.on('beforeChange', () => this.incomingChanges = true);
+    this.cm.on('beforeChange', () => { this.incomingChanges = true; });
     // Propagate updates from the code editor to ProseMirror
     this.cm.on('cursorActivity', () => {
       if (!this.updating && !this.incomingChanges) this.forwardSelection();
@@ -67,8 +53,6 @@ class CodeBlockView {
     this.cm.on('focus', () => this.forwardSelection());
   }
 
-  // }
-  // nodeview_forwardSelection{
   forwardSelection() {
     if (!this.cm.hasFocus()) return;
     const { state } = this.view;
@@ -76,8 +60,6 @@ class CodeBlockView {
     if (!selection.eq(state.selection)) this.view.dispatch(state.tr.setSelection(selection));
   }
 
-  // }
-  // nodeview_asProseMirrorSelection{
   asProseMirrorSelection(doc) {
     const offset = this.getPos() + 1;
     const anchor = this.cm.indexFromPos(this.cm.getCursor('anchor')) + offset;
@@ -85,8 +67,6 @@ class CodeBlockView {
     return TextSelection.create(doc, anchor, head);
   }
 
-  // }
-  // nodeview_setSelection{
   setSelection(anchor, head) {
     this.cm.focus();
     this.updating = true;
@@ -95,8 +75,6 @@ class CodeBlockView {
     this.updating = false;
   }
 
-  // }
-  // nodeview_valueChanged{
   valueChanged() {
     const change = computeChange(this.node.textContent, this.cm.getValue());
     if (change) {
@@ -109,8 +87,6 @@ class CodeBlockView {
     }
   }
 
-  // }
-  // nodeview_keymap{
   codeMirrorKeymap() {
     const { view } = this;
     const mod = /Mac/.test(navigator.platform) ? 'Cmd' : 'Ctrl';
@@ -141,8 +117,6 @@ class CodeBlockView {
     this.view.focus();
   }
 
-  // }
-  // nodeview_update{
   update(node) {
     if (node.type != this.node.type) return false;
     this.node = node;
@@ -162,9 +136,7 @@ class CodeBlockView {
 
   stopEvent() { return true; }
 }
-// }
 
-// computeChange{
 function computeChange(oldVal, newVal) {
   if (oldVal == newVal) return null;
   let start = 0; let oldEnd = oldVal.length; let
@@ -197,10 +169,90 @@ const arrowHandlers = keymap({
   ArrowDown: arrowHandler('down'),
 });
 
-window.view = new EditorView(document.querySelector('#editor'), {
-  state: EditorState.create({
-    doc: DOMParser.fromSchema(schema).parse(document.querySelector('#content')),
-    plugins: exampleSetup({ schema }).concat(arrowHandlers),
-  }),
-  nodeViews: { code_block: (node, view, getPos) => new CodeBlockView(node, view, getPos) },
+class MarkdownView {
+  constructor(target, content) {
+    this.textarea = target.appendChild(document.createElement('textarea'));
+    this.textarea.value = content;
+  }
+
+  get content() {
+    return this.textarea.value;
+  }
+
+  focus() { this.textarea.focus(); }
+
+  destroy() { this.textarea.remove(); }
+}
+
+const markdownNodes = markdownSchema.spec.nodes;
+const schema = new Schema({
+  nodes: markdownNodes.update('code_block', { ...markdownNodes.get('code_block'), isolating: true }),
+  marks: markdownSchema.spec.marks,
+});
+
+const codeMirrorMarkdownParser = new MarkdownParser(schema, markdownit('commonmark', { html: false }), {
+  blockquote: { block: 'blockquote' },
+  paragraph: { block: 'paragraph' },
+  list_item: { block: 'list_item' },
+  bullet_list: { block: 'bullet_list' },
+  ordered_list: { block: 'ordered_list', getAttrs: (tok) => ({ order: +tok.attrGet('start') || 1 }) },
+  heading: { block: 'heading', getAttrs: (tok) => ({ level: +tok.tag.slice(1) }) },
+  code_block: { block: 'code_block' },
+  fence: { block: 'code_block', getAttrs: (tok) => ({ params: tok.info || '' }) },
+  hr: { node: 'horizontal_rule' },
+  image: {
+    node: 'image',
+    getAttrs: (tok) => ({
+      src: tok.attrGet('src'),
+      title: tok.attrGet('title') || null,
+      alt: tok.children[0] && tok.children[0].content || null,
+    }),
+  },
+  hardbreak: { node: 'hard_break' },
+
+  em: { mark: 'em' },
+  strong: { mark: 'strong' },
+  link: {
+    mark: 'link',
+    getAttrs: (tok) => ({
+      href: tok.attrGet('href'),
+      title: tok.attrGet('title') || null,
+    }),
+  },
+  code_inline: { mark: 'code' },
+});
+
+class ProseMirrorView {
+  constructor(target, content) {
+    this.view = new EditorView(target, {
+      state: EditorState.create({
+        doc: codeMirrorMarkdownParser.parse(content),
+        plugins: exampleSetup({ schema }).concat(arrowHandlers),
+      }),
+      nodeViews: { code_block: (node, view, getPos) => new CodeBlockView(node, view, getPos) },
+    });
+  }
+
+  get content() {
+    return defaultMarkdownSerializer.serialize(this.view.state.doc);
+  }
+
+  focus() { this.view.focus(); }
+
+  destroy() { this.view.destroy(); }
+}
+
+const place = document.querySelector('#editor');
+let view = new MarkdownView(place, document.querySelector('#content').value);
+
+document.querySelectorAll('input[type=radio]').forEach((button) => {
+  button.addEventListener('change', () => {
+    if (!button.checked) return;
+    const View = button.value == 'markdown' ? MarkdownView : ProseMirrorView;
+    if (view instanceof View) return;
+    const { content } = view;
+    view.destroy();
+    view = new View(place, content);
+    view.focus();
+  });
 });

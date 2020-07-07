@@ -693,3 +693,8 @@ div.CodeMirror-dragcursors {
 /* Help users use markselection to safely style text background */
 span.CodeMirror-selectedtext { background: none; }
 
+.CodeMirror {
+  border: 1px solid #eee;
+  height: auto;
+}
+.CodeMirror pre { white-space: pre !important }
