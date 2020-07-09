@@ -2,11 +2,19 @@ body{
   margin: 0;
   padding: 0;
   font-family: "Roboto";
-  font: 400 16px/24px Roboto;
+  font: 300 15px/24px Roboto;
 }
 
 st{
   text-decoration: line-through;
+}
+
+a.hashtag{
+  display: inline-block;
+  color: white;
+  background-color: #aaa;
+  padding: 5px 10px 5px 10px;
+  border-radius: 500px;
 }
 
 img{
