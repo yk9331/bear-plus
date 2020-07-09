@@ -4,7 +4,7 @@ env:
   commonjs: true
   es6: true
 extends:
-  - airbnb-base
+  - 'eslint:recommended'
 parserOptions:
   ecmaVersion: 2018
   sourceType: module
