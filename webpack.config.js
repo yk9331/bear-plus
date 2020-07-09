@@ -7,10 +7,14 @@ module.exports = {
   name: 'app',
 
   entry: {
+    font: path.join(__dirname, 'public/css/font.css'),
+    emoji: path.join(__dirname, 'public/css/emoji.css'),
     note: [
       path.join(__dirname, 'public/js/note.js'),
     ],
     'note-style': [
+      path.join(__dirname, 'public/css/font.css'),
+      path.join(__dirname, 'node_modules/codemirror/theme/neo.css'),
       path.join(__dirname, 'public/css/note.css'),
     ],
   },
@@ -51,7 +55,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/views/note.ejs',
       filename: path.join(__dirname, 'public/views/build/note.ejs'),
-      chunks: ['note', 'note-style'],
+      chunks: ['note', 'font', 'emoji', 'note-style'],
       chunksSortMode: 'manual',
     }),
     new HtmlWebpackPlugin({

@@ -21,6 +21,9 @@
     "jquery": "^3.5.1",
     "lodash": "^4.17.15",
     "markdown-it": "^11.0.0",
+    "markdown-it-emoji": "^1.4.0",
+    "markdown-it-ins": "^3.0.0",
+    "markdown-it-mark": "^3.0.0",
     "polyfill": "^0.1.0",
     "prosemirror-commands": "^1.1.4",
     "prosemirror-example-setup": "^1.1.2",
@@ -33,7 +36,8 @@
     "prosemirror-state": "^1.3.3",
     "prosemirror-view": "^1.15.0",
     "sequelize": "^6.2.4",
-    "simplemde": "^1.11.2"
+    "simplemde": "^1.11.2",
+    "twemoji": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.10.4",

@@ -1,6 +1,20 @@
 body{
   margin: 0;
   padding: 0;
+  font-family: "Roboto";
+  font: 400 16px/24px Roboto;
+}
+
+st{
+  text-decoration: line-through;
+}
+
+img{
+  max-width: 100%;
+}
+
+.emoji{
+  height: 1rem;
 }
 
 #page-wrapper{
@@ -8,9 +22,48 @@ body{
   height: 100vh;
 }
 
-#tags-container{
+#left-container{
   flex: 1;
+  display: flex;
+  flex-direction: column;
   background-color: rgb(47,50,53);
+  justify-content: start;
+}
+
+#types-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  padding: 10px;
+}
+
+#tags-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+#types-container .tag,
+#tags-container .tag{
+  width: 100%;
+  color: white;
+  text-align: left;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.tag .tag-icon{
+  width: 20px;
+  height: 20px;
+  background-color: seashell; 
+}
+
+.tag .tag-text{
+  margin-left: 10px;
+  font-size: 16px;
 }
 
 #notes-container{
@@ -21,6 +74,26 @@ body{
 #editor-container{
   flex: 5;
 }
+
+
+/* ProseMirror */
+
+#editor textarea { 
+  width: 100%; 
+  height: 100%; 
+  box-sizing: border-box; 
+  -moz-box-sizing: border-box; 
+  padding: 3px 10px;
+  border: none; 
+  outline: none; 
+  font-family: inherit; 
+  font-size: inherit }
+
+.ProseMirror-menubar-wrapper,
+ #markdown textarea { 
+   display: block; 
+   margin-bottom: 4px 
+  }
 
 .ProseMirror {
   position: relative;
@@ -356,9 +429,16 @@ li.ProseMirror-selectednode:after {
 
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
-  font-family: monospace;
+  font-family: 'Source Code Pro';
+  font-size: 14px;
+  font-weight: 500;
   height: auto;
-  color: black;
+  background-color:#ffffff;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  color:#2e383c;
+  line-height:1.6rem;
+  padding: 0 10px;
 }
 
 /* PADDING */
@@ -368,6 +448,7 @@ li.ProseMirror-selectednode:after {
 }
 .CodeMirror pre {
   padding: 0 4px; /* Horizontal padding of content */
+  white-space: pre !important
 }
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
@@ -383,20 +464,21 @@ li.ProseMirror-selectednode:after {
 }
 .CodeMirror-linenumbers {}
 .CodeMirror-linenumber {
-  padding: 0 3px 0 5px;
+  padding: 0 1px 0 2px;
   min-width: 20px;
   text-align: right;
-  color: #999;
   white-space: nowrap;
+  color:rgba(205, 80, 70,0.8);
 }
 
-.CodeMirror-guttermarker { color: black; }
-.CodeMirror-guttermarker-subtle { color: #999; }
+.CodeMirror-guttermarker { color: #1d75b3; }
+.CodeMirror-guttermarker-subtle { color: #e0e2e5; }
+
 
 /* CURSOR */
 
 .CodeMirror-cursor {
-  border-left: 1px solid black;
+  border-left: 2px solid rgb(205, 80, 70);
   border-right: none;
   width: 0;
 }
@@ -454,8 +536,7 @@ li.ProseMirror-selectednode:after {
 }
 
 /* DEFAULT THEME */
-
-.cm-s-default .cm-header {color: blue;}
+.cm-s-default .cm-header { color:#318aca; }
 .cm-s-default .cm-quote {color: #090;}
 .cm-negative {color: #d44;}
 .cm-positive {color: #292;}
@@ -464,27 +545,28 @@ li.ProseMirror-selectednode:after {
 .cm-link {text-decoration: underline;}
 .cm-strikethrough {text-decoration: line-through;}
 
-.cm-s-default .cm-keyword {color: #708;}
-.cm-s-default .cm-atom {color: #219;}
-.cm-s-default .cm-number {color: #164;}
-.cm-s-default .cm-def {color: #00f;}
-.cm-s-default .cm-variable,
+.cm-s-default .cm-keyword { color:#318aca; }
+.cm-s-default .cm-atom { color:#8b3e8b; }
+.cm-s-default .cm-number { color:#318aca;}
+.cm-s-default .cm-def { color:#2e383c; }
+.cm-s-default .cm-node { color:#d4680a; }
+.cm-s-default .cm-variable { color:#2e383c; }
 .cm-s-default .cm-punctuation,
 .cm-s-default .cm-property,
-.cm-s-default .cm-operator {}
-.cm-s-default .cm-variable-2 {color: #05a;}
-.cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
-.cm-s-default .cm-comment {color: #a50;}
-.cm-s-default .cm-string {color: #a11;}
-.cm-s-default .cm-string-2 {color: #f50;}
-.cm-s-default .cm-meta {color: #555;}
-.cm-s-default .cm-qualifier {color: #555;}
+.cm-s-default .cm-operator { color:#8b3e8b; }
+.cm-s-default .cm-variable-2 { color:#2e383c; }
+.cm-s-default .cm-variable-3, .cm-s-default .cm-type {color:#2e383c;}
+.cm-s-default .cm-comment { color:#75787b; }
+.cm-s-default .cm-string { color:#d4680a; }
+.cm-s-default .cm-string-2 { color:#d4680a; }
+.cm-s-default .cm-meta { color:#75787b; }
+.cm-s-default .cm-qualifier { color:#047d65; }
 .cm-s-default .cm-builtin {color: #30a;}
 .cm-s-default .cm-bracket {color: #997;}
-.cm-s-default .cm-tag {color: #170;}
-.cm-s-default .cm-attribute {color: #00c;}
-.cm-s-default .cm-hr {color: #999;}
-.cm-s-default .cm-link {color: #00c;}
+.cm-s-default .cm-tag { color:#9c3328; }
+.cm-s-default .cm-attribute { color:#318aca; }
+.cm-s-default .cm-hr { color:#75787b; }
+.cm-s-default .cm-link { color:#318aca; }
 
 .cm-s-default .cm-error {color: #f00;}
 .cm-invalidchar {color: #f00;}
@@ -639,6 +721,12 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
   box-sizing: content-box;
 }
 
+.CodeMirror-gutters {
+  border:none;
+  border-right:10px solid transparent;
+  background-color:transparent;
+}
+
 .CodeMirror-measure {
   position: absolute;
   width: 100%;
@@ -667,10 +755,10 @@ div.CodeMirror-dragcursors {
 }
 
 .CodeMirror-selected { background: #d9d9d9; }
-.CodeMirror-focused .CodeMirror-selected { background: #d7d4f0; }
+.CodeMirror-focused .CodeMirror-selected { background: #c5e2ee; }
 .CodeMirror-crosshair { cursor: crosshair; }
-.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: #d7d4f0; }
-.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #d7d4f0; }
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: #c5e2ee;}
+.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #c5e2ee;}
 
 .cm-searching {
   background: #ffa;
@@ -692,9 +780,3 @@ div.CodeMirror-dragcursors {
 
 /* Help users use markselection to safely style text background */
 span.CodeMirror-selectedtext { background: none; }
-
-.CodeMirror {
-  border: 1px solid #eee;
-  height: auto;
-}
-.CodeMirror pre { white-space: pre !important }

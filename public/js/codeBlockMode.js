@@ -1,0 +1,12 @@
+import 'codemirror/mode/css/css';
+import 'codemirror/mode/dockerfile/dockerfile';
+import 'codemirror/mode/gfm/gfm';
+import 'codemirror/mode/http/http';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/markdown/markdown';
+import 'codemirror/mode/nginx/nginx';
+import 'codemirror/mode/php/php';
+import 'codemirror/mode/pug/pug';
+import 'codemirror/mode/shell/shell';
+import 'codemirror/mode/sql/sql';
+import 'codemirror/mode/xml/xml';
