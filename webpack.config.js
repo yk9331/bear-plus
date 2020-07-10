@@ -15,6 +15,8 @@ module.exports = {
     'note-style': [
       path.join(__dirname, 'public/css/font.css'),
       path.join(__dirname, 'node_modules/codemirror/theme/neo.css'),
+      path.join(__dirname, 'public/css/codeMirrorEditor.css'),
+      path.join(__dirname, 'public/css/codeMirrorEditorEmbeded.css'),
       path.join(__dirname, 'public/css/note.css'),
     ],
   },

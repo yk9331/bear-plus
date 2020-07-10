@@ -36,17 +36,21 @@
         </div>
       </div>
       <div id="notes-container">
-        <div style="text-align: center">
-          <label style="border-right: 1px solid silver">
-            Markdown <input type=radio name=inputformat value=markdown checked>&nbsp;</label>
-          <label>&nbsp;<input type=radio name=inputformat value=prosemirror> WYSIWYM</label>
-        </div>
+        
       </div>
       <div id="editor-container">
-        <!-- <div id="editor"></div>
-        <div id=content style="display: none"></div> -->
+        <label class="info-dashboard-btn" for="info-dashboard-checkbox">
+          <div class="circle"></div>
+          <div class="line"></div>
+        </label>
+        <input type="checkbox" id="info-dashboard-checkbox">
+        <div id="info-dashboard"></div>
+        <label class="editor-tool-btn" for="editor-tool-checkbox"><div class="circle"></div><div class="circle"></div><div class="circle"></div></label>
+        <input type="checkbox" id="editor-tool-checkbox">
+        <div id="editor-tool">
+          <button id="view-source-btn">View Source</button>
+        </div>
         <div id="editor" style="margin-bottom: 0"></div>
-        
         <div style="display: none">
           <textarea id="content">
 ---

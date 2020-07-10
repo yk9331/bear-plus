@@ -185,21 +185,26 @@ const arrowHandlers = keymap({
 class MarkdownView {
   constructor(target, content) {
     this.textarea = target.appendChild(document.createElement('textarea'));
+    this.cm = CodeMirror.fromTextArea(this.textarea, {
+      mode: 'markdown',
+      lineNumbers: true,
+      scrollbarStyle: null,
+    });
+    this.cm.getDoc().setValue(content);
     this.textarea.value = content;
   }
 
   get content() {
+    this.cm.toTextArea();
     return this.textarea.value;
   }
 
   focus() { this.textarea.focus(); }
 
-  destroy() { this.textarea.remove(); }
+  destroy() {
+    this.textarea.remove();
+  }
 }
-
-
-
-
 
 class ProseMirrorView {
   constructor(target, content) {
@@ -208,7 +213,7 @@ class ProseMirrorView {
     const pmView = new EditorView(target, {
       state: EditorState.create({
         doc: defaultMarkdownParser.parse(content),
-        plugins: exampleSetup({ schema, history: true }).concat(arrowHandlers),
+        plugins: exampleSetup({ schema, history: true, menuBar:false }).concat(arrowHandlers),
       }),
       nodeViews: { code_block: (node, view, getPos) => new CodeBlockView(node, view, getPos) },
       dispatchTransaction(transaction) {
@@ -232,7 +237,26 @@ class ProseMirrorView {
 }
 
 const place = document.querySelector('#editor');
-let view = new MarkdownView(place, document.querySelector('#content').value);
+let view = new ProseMirrorView(place, document.querySelector('#content').value);
+const btn = document.querySelector('#view-source-btn');
+
+btn.addEventListener('click', (e) => {
+  if (btn.textContent === 'View Source') {
+    btn.textContent = 'View Style';
+    const View = MarkdownView;
+    const { content } = view;
+    view.destroy();
+    view = new View(place, content);
+    view.focus();
+  } else {
+    btn.textContent = 'View Source';
+    const View = ProseMirrorView;
+    const { content } = view;
+    view.destroy();
+    view = new View(place, content);
+    view.focus();
+  }
+});
 
 document.querySelectorAll('input[type=radio]').forEach((button) => {
   button.addEventListener('change', () => {

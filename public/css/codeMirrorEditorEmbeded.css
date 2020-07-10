@@ -1,0 +1,18 @@
+/* BASICS */
+
+.ProseMirror .CodeMirror {
+  /* Set height, width, borders, and global font properties here */
+  font-family: 'Source Code Pro';
+  font-size: 14px;
+  font-weight: 500;
+  height: auto;
+  background-color:#ffffff;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  color:#2e383c;
+  line-height:1.6rem;
+  padding: 0 10px;
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;
+}

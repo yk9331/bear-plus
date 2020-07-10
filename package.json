@@ -22,7 +22,6 @@
     "lodash": "^4.17.15",
     "markdown-it": "^11.0.0",
     "markdown-it-emoji": "^1.4.0",
-    "markdown-it-hashtag": "^0.4.0",
     "markdown-it-ins": "^3.0.0",
     "markdown-it-mark": "^3.0.0",
     "polyfill": "^0.1.0",
