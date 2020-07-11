@@ -1,4 +1,5 @@
 require('dotenv').config();
+const {PORT_TEST, PORT, NODE_ENV, API_VERSION} = process.env;
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -24,6 +25,12 @@ app.use(cookieParser());
 app.get('/', (req, res) => {
   res.render('note');
 });
+
+app.use('/api/' + API_VERSION,
+    [
+        require('./server/routes/editor_route'),
+    ]
+);
 
 app.use((req, res, next) => {
   res.status(404).render('404.ejs');

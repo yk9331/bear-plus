@@ -1,19 +1,22 @@
 import { schema } from './noteSchema';
 import { defaultMarkdownParser, defaultMarkdownSerializer } from './markdownParser';
-import { exitCode } from 'prosemirror-commands';
-import { undo, redo } from 'prosemirror-history';
+import { exitCode,baseKeymap } from 'prosemirror-commands';
+import { undo, redo, history } from 'prosemirror-history';
 import { keymap } from 'prosemirror-keymap';
-import { EditorState, Selection, TextSelection } from 'prosemirror-state';
+import { EditorState, Selection, TextSelection, Plugin } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { exampleSetup } from 'prosemirror-example-setup';
+import { imageUploader } from 'prosemirror-image-uploader'
+
+import { dropCursor } from 'prosemirror-dropcursor';
+import { gapCursor } from 'prosemirror-gapcursor';
+import { buildInputRules } from './inputrules';
+import { buildKeymap } from './keymap';
 
 import markdownit from 'markdown-it';
-
-
 import CodeMirror from 'codemirror';
 import './codeBlockMode';
 
-const markdownItMark = require('markdown-it-mark');
+const mark = require('markdown-it-mark');
 const emoji = require('markdown-it-emoji');
 const ins = require('markdown-it-ins');
 const hashtag = require('./markdownItHashtag');
@@ -49,6 +52,7 @@ class CodeBlockView {
       lineNumbers: false,
       extraKeys: this.codeMirrorKeymap(),
       scrollbarStyle: null,
+      lineWrapping: true,
     });
 
     // The editor's outer node is our DOM representation
@@ -189,6 +193,7 @@ class MarkdownView {
       mode: 'markdown',
       lineNumbers: true,
       scrollbarStyle: null,
+      lineWrapping: true,
     });
     this.cm.getDoc().setValue(content);
     this.textarea.value = content;
@@ -209,11 +214,44 @@ class MarkdownView {
 class ProseMirrorView {
   constructor(target, content) {
     console.log(markdownit('default', { html: false, typographer: true, linkify: true })
-      .use(markdownItMark).use(emoji).use(ins).use(hashtag).parse(content));
+    .use(mark).use(emoji).use(ins).use(hashtag).parse(content));
     const pmView = new EditorView(target, {
       state: EditorState.create({
         doc: defaultMarkdownParser.parse(content),
-        plugins: exampleSetup({ schema, history: true, menuBar:false }).concat(arrowHandlers),
+        plugins: [
+          buildInputRules(schema),
+          keymap(buildKeymap(schema, {})),
+          keymap(baseKeymap),
+          dropCursor(),
+          gapCursor(),
+          history(),
+          arrowHandlers,
+          imageUploader({
+            async upload(fileOrUrl, view) {
+              if (typeof fileOrUrl === 'string') {
+                return fileOrUrl;
+              } else {
+                const formData = new FormData();
+                formData.append('image', fileOrUrl);
+                const url = fetch('http://localhost:5000/api/1.0/editor/image', {
+                method: 'POST',
+                body: formData
+                })
+                  .then(res => res.json())
+                  .then(body => {
+                    return (body.url);
+                  });
+                console.log(url);
+                return url;
+              }
+            }
+          }),
+          // new Plugin({
+          //   props: {
+          //     attributes: {class: 'ProseMirror-example-setup-style'}
+          //   }
+          // })
+        ],
       }),
       nodeViews: { code_block: (node, view, getPos) => new CodeBlockView(node, view, getPos) },
       dispatchTransaction(transaction) {
@@ -256,16 +294,4 @@ btn.addEventListener('click', (e) => {
     view = new View(place, content);
     view.focus();
   }
-});
-
-document.querySelectorAll('input[type=radio]').forEach((button) => {
-  button.addEventListener('change', () => {
-    if (!button.checked) return;
-    const View = button.value === 'markdown' ? MarkdownView : ProseMirrorView;
-    if (view instanceof View) return;
-    const { content } = view;
-    view.destroy();
-    view = new View(place, content);
-    view.focus();
-  });
 });

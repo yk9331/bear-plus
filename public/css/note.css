@@ -2,7 +2,7 @@ body{
   margin: 0;
   padding: 0;
   font-family: "Roboto";
-  font: 300 15px/24px Roboto;
+  font: 400 15px/24px Roboto;
 }
 
 st{
@@ -31,7 +31,8 @@ img{
 }
 
 #left-container{
-  flex: 1;
+  width: 15%;
+  min-width: 180px;
   display: flex;
   flex-direction: column;
   background-color: rgb(47,50,53);
@@ -75,12 +76,14 @@ img{
 }
 
 #notes-container{
-  flex: 2;
+  width: 25%;
+  min-width: 200px;
   border-right: 1px solid rgb(222,222,222);
 }
 
 #editor-container{
-  flex: 5;
+  width: 60%;
+  min-width: 500px;
 }
 /* ProseMirror */
 
@@ -91,12 +94,11 @@ img{
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-left: 1em;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  
   justify-content: center;
+  z-index: 100;
 }
 
 .info-dashboard-btn{
@@ -206,6 +208,7 @@ img{
   position: relative;
   max-width: 800px;
   margin: 0 auto;
+  width: 80%;
 }
 
 .ProseMirror {
@@ -410,7 +413,7 @@ li.ProseMirror-selectednode:after {
   position: absolute;
   top: -2px;
   width: 20px;
-  border-top: 1px solid black;
+  border-top: 2px solid rgb(205, 80, 70);
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
@@ -425,13 +428,13 @@ li.ProseMirror-selectednode:after {
 }
 /* Add space around the hr to make clicking it easier */
 
-.ProseMirror-example-setup-style hr {
+.ProseMirror hr {
   padding: 2px 10px;
   border: none;
   margin: 1em 0;
 }
 
-.ProseMirror-example-setup-style hr:after {
+.ProseMirror hr:after {
   content: "";
   display: block;
   height: 1px;
@@ -443,13 +446,23 @@ li.ProseMirror-selectednode:after {
   padding-left: 30px;
 }
 
+.ProseMirror code{
+  border: 1px solid #eee;
+  padding: 0 8px;
+  
+}
+
+.ProseMirror mark{
+  padding: 0 8px;
+}
+
 .ProseMirror blockquote {
   padding-left: 1em;
   border-left: 3px solid #eee;
   margin-left: 0; margin-right: 0;
 }
 
-.ProseMirror-example-setup-style img {
+.ProseMirror img {
   cursor: default;
 }
 
@@ -529,9 +542,8 @@ li.ProseMirror-selectednode:after {
   padding: 4px 8px 4px 14px;
   line-height: 1.2;
   outline: none;
+  caret-color: rgb(205, 80, 70);
 }
 
 .ProseMirror p { margin-bottom: 1em }
-
-
 

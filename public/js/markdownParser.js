@@ -3,7 +3,7 @@ import markdownit from 'markdown-it';
 import { Mark } from 'prosemirror-model';
 import { MarkdownSerializer } from 'prosemirror-markdown';
 
-const markdownItMark = require('markdown-it-mark');
+const mark = require('markdown-it-mark');
 const emoji = require('markdown-it-emoji');
 const ins = require('markdown-it-ins');
 const hashtag = require('./markdownItHashtag');
@@ -222,7 +222,7 @@ export class MarkdownParser {
 
 export const defaultMarkdownParser = new MarkdownParser(schema,
   markdownit('default', { html: false, typographer: true, linkify: true })
-    .use(markdownItMark).use(emoji).use(ins).use(hashtag), {
+    .use(mark).use(emoji).use(ins).use(hashtag), {
   blockquote: { block: 'blockquote' },
   paragraph: { block: 'paragraph' },
   list_item: { block: 'list_item' },

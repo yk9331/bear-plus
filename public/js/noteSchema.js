@@ -104,6 +104,8 @@ export const schema = new Schema({
         src: {},
         alt: { default: null },
         title: { default: null },
+        uploadId: { default: null },
+        error: {default: null},
       },
       group: 'inline',
       draggable: true,
@@ -114,10 +116,15 @@ export const schema = new Schema({
             src: dom.getAttribute('src'),
             title: dom.getAttribute('title'),
             alt: dom.getAttribute('alt'),
+            uploadId: dom.getAttribute('uploadId'), /// added
+            error: dom.getAttribute('error') /// added
           };
         },
       }],
-      toDOM(node) { return ['img', node.attrs]; },
+      toDOM(node) {
+        let { src, alt, title, uploadId, error } = node.attrs;
+        return ['img', { src, alt, title, uploadId, error }];
+      },
     },
     emoji: {
       inline: true,
