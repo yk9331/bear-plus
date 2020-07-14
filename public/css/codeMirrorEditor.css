@@ -6,7 +6,7 @@
   font-size: 14px;
   font-weight: 500;
   height: auto;
-  background-color:#ffffff;
+  background-color: rgb(251,251,251);
   color:#2e383c;
   line-height:1.6rem;
   padding: 0 10px 0 0; 
@@ -27,7 +27,7 @@
 }
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
-  background-color: white; /* The little square between H and V scrollbars */
+  background-color: rgb(251,251,251); /* The little square between H and V scrollbars */
 }
 
 /* GUTTER */
@@ -167,7 +167,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .CodeMirror {
   position: relative;
   overflow: hidden;
-  background: white;
+  background: rgb(251,251,251);
 }
 
 .CodeMirror-scroll {

@@ -1,0 +1,129 @@
+<div id="menu">
+  <div id="profile">
+    <div class="user-icon"></div>
+    <div class="user-name">Yen-Chen Kuo</div>
+    <div class="user-id">@yk9331</div>
+  </div>
+  <div id="types-container">
+    <div class="tag">
+      <div class="tag-icon"></div>
+      <div class="tag-text">Notes</div>
+    </div>
+    <div class="tag">
+      <div class="tag-icon"></div>
+      <div class="tag-text">Archive</div>
+    </div>
+    <div class="tag">
+      <div class="tag-icon"></div>
+      <div class="tag-text">Trash</div>
+    </div>
+  </div>
+  <div id="tags-container">
+    <div id="tags">
+      <div class="tag">
+        <div class="tag-icon"></div>
+        <div class="tag-text">Tag</div>
+      </div>
+      <div class="tag">
+        <div class="tag-icon"></div>
+        <div class="tag-text">Tag</div>
+      </div>
+    </div>
+  </div>
+  <div id="setting">
+    <%if (user !== null) { %>
+      <div class="user-wrapper">
+        <img class="user-icon" src="<%= user[userAvatar] %>"></img>
+        <div class="user-name"><%= user[userName] %></div>
+      </div>
+    <% } else{ %>
+      <button type="button" id="signin-modal-btn" class="btn btn-outline-light" data-toggle="modal" data-target="#sign-in-modal">Sign in</button>
+
+      
+    <% } %>
+    <div class="info">
+      <div class="info-btn">?</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sign in modal -->
+<div class="modal fade" id="sign-in-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Sign in</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/auth/email/signin">
+          <div class="form-group">
+            <label for="signin-email">Email</label>
+            <input type="email" class="form-control" id="signin-email" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Password</label>
+            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+          </div>
+        </form>
+      </div>
+      <h5 class="text-center">or</h5>
+      <div class="form-group d-flex justify-content-center">
+          <button type="button" class="btn btn-primary">Sign in via Facebook</button>
+          <button type="button" class="btn btn-light">Sign in via Google</button>
+      </div>
+      <div class="form-group">
+        <p class="text-center">Don't have account? <a href="#" data-toggle="modal" data-target="#sign-up-modal" data-dismiss="modal">Sign up here</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sign up modal -->
+<div class="modal fade" id="sign-up-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title center">Sign up</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/auth/email/signup">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" aria-describedby="usernameHelp" placeholder="Enter username">
+            <small id="usernameHelp" class="form-text text-muted">Allow a-Z, 0-9 and dash not at beginning.</small>
+          </div>
+          <div class="form-group">
+            <label for="signup-eamil">Email</label>
+            <input type="email" class="form-control" id="signup-eamil" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Password</label>
+            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+          </div>
+          <p class="text-center">By signing up you accept our Terms Of Use</p>
+          <div class="text-center">
+          <button type="submit" class="btn btn-primary text-center">Sign up</button>
+          </div>
+        </form>
+      </div>
+      <h5 class="text-center">or</h3>
+        <div class="modal-footer d-flex justify-content-center">
+            <button type="button" class="btn btn-primary">Sign in via Facebook</button>
+            <button type="button" class="btn btn-light">Sign in via Google</button>
+        </div>
+      <div class="form-group">
+        <p class="text-center">Have an account? <a href="#" data-toggle="modal" data-target="#sign-in-modal" data-dismiss="modal">Sign in here</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
