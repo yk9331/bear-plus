@@ -1,6 +1,6 @@
-import { Schema } from 'prosemirror-model';
+const { Schema }  = require('prosemirror-model');
 // ::Schema Document schema for the data model used by CommonMark.
-export const schema = new Schema({
+exports.schema = new Schema({
   nodes: {
     doc: {
       content: 'block+',
@@ -169,15 +169,15 @@ export const schema = new Schema({
       attrs: {
         href: {},
         title: { default: null },
-        class: {defaule: 'hashtag'}
+        class: { defaule: 'hashtag' }
       },
       parseDOM: [{
-        tag: 'a[href]',
+        tag: 'hashtag[href]',
         getAttrs(dom) {
           return { href: dom.getAttribute('href'), title: dom.getAttribute('title') };
         },
       }],
-      toDOM(node) { return ['a', node.attrs]; },
+      toDOM(node) { return ['hashtag', node.attrs]; },
 
     },
 
@@ -185,15 +185,23 @@ export const schema = new Schema({
       attrs: {
         href: {},
         title: { default: null },
+        class: { default: null},
       },
       inclusive: false,
       parseDOM: [{
         tag: 'a[href]',
         getAttrs(dom) {
-          return { href: dom.getAttribute('href'), title: dom.getAttribute('title') };
+          return {
+            href: dom.getAttribute('href'),
+            title: dom.getAttribute('title'),
+            class: dom.getAttribute('class')
+          };
         },
       }],
-      toDOM(node) { return ['a', node.attrs]; },
+      toDOM(node) {
+        let {href, title} = node.attrs;
+        return ['a', {href, title}, 0];
+      },
     },
 
     code: {
