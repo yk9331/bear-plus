@@ -10,10 +10,8 @@ module.exports = {
     font: path.join(__dirname, 'public/css/font.css'),
     emoji: path.join(__dirname, 'public/css/emoji.css'),
     note: [
-      path.join(__dirname, 'public/js/note.js'),
-    ],
-    menu: [
-      path.join(__dirname, 'public/js/menu.js'),
+      path.join(__dirname, 'public/js/index.js'),
+      path.join(__dirname, 'public/js/editor.js'),
     ],
     'note-style': [
       path.join(__dirname, 'public/css/font.css'),
@@ -58,7 +56,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/views/includes/scripts.ejs',
       filename: path.join(__dirname, 'public/views/build/note-scripts.ejs'),
-      chunks: ['menu', 'note'],
+      chunks: ['note'],
       chunksSortMode: 'manual',
     }),
     new MiniCssExtractPlugin(),

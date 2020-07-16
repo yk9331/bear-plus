@@ -1,9 +1,11 @@
 <div id="menu">
-  <div id="profile">
-    <div class="user-icon"></div>
-    <div class="user-name">Yen-Chen Kuo</div>
-    <div class="user-id">@yk9331</div>
-  </div>
+  <%if (profile !== null && profileId !== userId) { %>
+    <div id="profile">
+      <img class="user-icon" src="<%= profile.biggerphoto %>"></img>
+      <div class="user-name"><%= profile.name %></div>
+      <div class="user-id"><%= profileId %></div>
+    </div>
+  <% } %>
   <div id="types-container">
     <div class="tag">
       <div class="tag-icon"></div>
@@ -31,15 +33,15 @@
     </div>
   </div>
   <div id="setting">
-    <%if (user !== null) { %>
+    <%if (userProfile !== null) { %>
       <div class="user-wrapper">
-        <img class="user-icon" src="<%= user[userAvatar] %>"></img>
-        <div class="user-name"><%= user[userName] %></div>
+        <a href="/api/1.0/logout">
+          <img class="user-icon" src="<%= userProfile.photo %>"></img>
+        </a>
+        <div class="user-name"><%= userProfile.name %></div>
       </div>
     <% } else{ %>
-      <button type="button" id="signin-modal-btn" class="btn btn-outline-light" data-toggle="modal" data-target="#sign-in-modal">Sign in</button>
-
-      
+      <button type="button" id="signin-modal-btn" class="btn btn-outline-light" data-toggle="modal" data-target="#sign-in-modal">Sign in</button> 
     <% } %>
     <div class="info">
       <div class="info-btn">?</div>
@@ -58,14 +60,14 @@
         </button>
       </div>
       <div class="modal-body">
-        <form action="/auth/email/signin">
+        <form action="api/1.0/signin" method="POST" enctype="application/x-www-form-urlencoded">
           <div class="form-group">
             <label for="signin-email">Email</label>
-            <input type="email" class="form-control" id="signin-email" aria-describedby="emailHelp" placeholder="Enter email">
+            <input type="email" class="form-control" id="signin-email" name="email" aria-describedby="emailHelp" placeholder="Enter email">
           </div>
           <div class="form-group">
             <label for="signin-password">Password</label>
-            <input type="password" class="form-control" id="signin-password" placeholder="Password">
+            <input type="password" class="form-control" id="signin-password" name="password" placeholder="Password">
           </div>
           <div class="text-center">
             <button type="submit" class="btn btn-primary">Sign in</button>
@@ -74,8 +76,12 @@
       </div>
       <h5 class="text-center">or</h5>
       <div class="form-group d-flex justify-content-center">
+        <a href="/api/1.0/auth/facebook">
           <button type="button" class="btn btn-primary">Sign in via Facebook</button>
+        </a>
+        <a href="/api/1.0/auth/google">
           <button type="button" class="btn btn-light">Sign in via Google</button>
+        </a>
       </div>
       <div class="form-group">
         <p class="text-center">Don't have account? <a href="#" data-toggle="modal" data-target="#sign-up-modal" data-dismiss="modal">Sign up here</a></p>
@@ -95,19 +101,23 @@
         </button>
       </div>
       <div class="modal-body">
-        <form action="/auth/email/signup">
+        <form action="api/1.0/register" method="POST" enctype="application/x-www-form-urlencoded">
           <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" class="form-control" id="username" aria-describedby="usernameHelp" placeholder="Enter username">
-            <small id="usernameHelp" class="form-text text-muted">Allow a-Z, 0-9 and dash not at beginning.</small>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username">
+          </div>
+          <div class="form-group">
+            <label for="userId">User ID</label>
+            <input type="text" class="form-control" id="userId" name="userId" aria-describedby="userIdHelp" placeholder="Enter user id">
+            <small id="userIdHelp" class="form-text text-muted">Short URL path for your profile. Allow a-Z, 0-9 and dash.</small>
           </div>
           <div class="form-group">
             <label for="signup-eamil">Email</label>
-            <input type="email" class="form-control" id="signup-eamil" aria-describedby="emailHelp" placeholder="Enter email">
+            <input type="email" class="form-control" id="signup-eamil" name="email" aria-describedby="emailHelp" placeholder="Enter email">
           </div>
           <div class="form-group">
             <label for="signup-password">Password</label>
-            <input type="password" class="form-control" id="signup-password" placeholder="Password">
+            <input type="password" class="form-control" id="signup-password" name="password" placeholder="Password">
           </div>
           <p class="text-center">By signing up you accept our Terms Of Use</p>
           <div class="text-center">
@@ -117,8 +127,12 @@
       </div>
       <h5 class="text-center">or</h3>
         <div class="modal-footer d-flex justify-content-center">
+          <a href="/api/1.0/auth/facebook">
             <button type="button" class="btn btn-primary">Sign in via Facebook</button>
+          </a>
+          <a href="/api/1.0/auth/google">
             <button type="button" class="btn btn-light">Sign in via Google</button>
+          </a>
         </div>
       <div class="form-group">
         <p class="text-center">Have an account? <a href="#" data-toggle="modal" data-target="#sign-in-modal" data-dismiss="modal">Sign in here</a></p>

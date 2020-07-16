@@ -3,6 +3,8 @@
     <form id=search-form>
       <input type=text placeholder="Search Notes">
     </form>
-    <div id="new-note">+</div>
+    <%if (profile !== null && profileId === userId) { %>
+      <div id="new-note">+</div>
+    <% } %>
   </div>
 </div>

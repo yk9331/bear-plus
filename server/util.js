@@ -37,8 +37,7 @@ const wrapAsync = (fn) => {
   };
 };
 
-
 module.exports = {
   upload,
-  wrapAsync
+  wrapAsync,
 };
