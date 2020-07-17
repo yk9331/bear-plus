@@ -98,5 +98,5 @@ io.sockets.on('connection', realtime.connection);
 
 // Server Listen
 models.sequelize.sync().then(function () {
-  server.listen(port, '127.0.0.1', () => { console.log(`Listening on port: ${port}`); });
+  server.listen(port, () => { console.log(`Listening on port: ${port}`); });
 });
