@@ -1,3 +1,6 @@
+const models = require('../models');
+const response = require('../response');
+
 const testContent = `
 ---
 __Advertisement :)__
@@ -146,6 +149,23 @@ const uploadImage = async (req, res) => {
   res.json({ url });
 };
 
+
+const createNewNote = (req, res) => {
+  if (!req.isAuthenticated()) {
+    return response.errorForbidden(req, res);
+  }
+  models.Note.create({
+    ownerId: req.user.id,
+    content: ''
+  }).then((note) => {
+    res.json({ noteId: note.id, noteUrl: note.shortid });
+  }).catch((err) => {
+    console.log(err);
+    response.errorInternalError(req, res);
+  });
+};
+
 module.exports = {
+  createNewNote,
   uploadImage
 };

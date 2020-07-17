@@ -1,8 +1,8 @@
 <div id="menu">
-  <%if (profile !== null && profileId !== userId) { %>
+  <%if (JSON.parse(profile) !== null && profileId !== userId) { %>
     <div id="profile">
-      <img class="user-icon" src="<%= profile.biggerphoto %>"></img>
-      <div class="user-name"><%= profile.name %></div>
+      <img class="user-icon" src="<%= JSON.parse(profile).biggerphoto %>"></img>
+      <div class="user-name"><%= JSON.parse(profile).name %></div>
       <div class="user-id"><%= profileId %></div>
     </div>
   <% } %>
@@ -33,12 +33,12 @@
     </div>
   </div>
   <div id="setting">
-    <%if (userProfile !== null) { %>
+    <%if (JSON.parse(userProfile) !== null) { %>
       <div class="user-wrapper">
         <a href="/api/1.0/logout">
-          <img class="user-icon" src="<%= userProfile.photo %>"></img>
+          <img class="user-icon" src="<%= JSON.parse(userProfile).photo %>"></img>
         </a>
-        <div class="user-name"><%= userProfile.name %></div>
+        <div class="user-name"><%= JSON.parse(userProfile).name %></div>
       </div>
     <% } else{ %>
       <button type="button" id="signin-modal-btn" class="btn btn-outline-light" data-toggle="modal" data-target="#sign-in-modal">Sign in</button> 

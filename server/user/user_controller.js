@@ -1,4 +1,5 @@
-const { User } = require('../models');
+const { User, Note } = require('../models');
+const response = require('../response');
 
 const renderUserPage = async (req, res, next) => {
   const { profileId } = req.params;
@@ -8,6 +9,7 @@ const renderUserPage = async (req, res, next) => {
       userid: profileId.replace('@', '')
     }
   });
+  if (!profileUser) return response.errorNotFound(req, res);
   const profile = User.getProfile(profileUser);
   let userId = null;
   let userProfile = null;
@@ -15,12 +17,19 @@ const renderUserPage = async (req, res, next) => {
     userId = '@' + req.user.userid;
     userProfile = await User.getProfile(req.user);
   }
+  const noteList = await Note.findAll({
+    where: {
+      ownerId: profileUser.id
+    }
+  });
   res.render('note', {
     title: 'bear+',
     profileId,
-    profile,
+    profile: JSON.stringify(profile),
     userId,
-    userProfile,
+    userProfile: JSON.stringify(userProfile) ,
+    noteList: JSON.stringify(noteList),
+    tagList: null
   });
 };
 

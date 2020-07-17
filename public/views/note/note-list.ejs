@@ -1,4 +1,4 @@
-<div id="notes-container">
+<div id="note-column">
   <div id="search-bar">
     <form id=search-form>
       <input type=text placeholder="Search Notes">
@@ -6,5 +6,9 @@
     <%if (profile !== null && profileId === userId) { %>
       <div id="new-note">+</div>
     <% } %>
+  </div>
+  <div id="notes-container">
+    <div id="notes">
+    </div>
   </div>
 </div>

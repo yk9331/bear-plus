@@ -1,8 +1,9 @@
 'use strict';
 const Sequelize = require('sequelize');
+const shortId = require('shortid');
 
 // permission types
-var permissionTypes = ['freely', 'editable', 'limited', 'locked', 'protected', 'private'];
+var permissionTypes = ['public', 'share', 'private'];
 
 module.exports = (sequelize, DataTypes) => {
   const Note = sequelize.define('Note', {
@@ -15,15 +16,17 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
-      defaultValue: Sequelize.UUIDV4
+      defaultValue: shortId.generate
     },
-    alias: {
-      type: DataTypes.STRING,
-      unique: true
-    },
-    permission: {
+    view_permission: {
       type: DataTypes.ENUM,
-      values: permissionTypes
+      values: permissionTypes,
+      defaultValue: 'private'
+    },
+    write_permission: {
+      type: DataTypes.ENUM,
+      values: permissionTypes,
+      defaultValue: 'private'
     },
     viewcount: {
       type: DataTypes.INTEGER,
@@ -32,30 +35,12 @@ module.exports = (sequelize, DataTypes) => {
     },
     title: {
       type: DataTypes.TEXT,
-      get: function () {
-        return sequelize.processData(this.getDataValue('title'), '')
-      },
-      set: function (value) {
-        this.setDataValue('title', sequelize.stripNullByte(value))
-      }
     },
     content: {
       type: DataTypes.TEXT('long'),
-      get: function () {
-        return sequelize.processData(this.getDataValue('content'), '')
-      },
-      set: function (value) {
-        this.setDataValue('content', sequelize.stripNullByte(value))
-      }
     },
     authorship: {
       type: DataTypes.TEXT('long'),
-      get: function () {
-        return sequelize.processData(this.getDataValue('authorship'), [], JSON.parse)
-      },
-      set: function (value) {
-        this.setDataValue('authorship', JSON.stringify(value))
-      }
     },
     lastchangeAt: {
       type: DataTypes.DATE

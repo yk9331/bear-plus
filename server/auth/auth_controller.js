@@ -4,10 +4,10 @@ const passport = require('passport');
 const validator = require('validator');
 const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
-const { NODE_ENV, SERVER_URL, LOCAL_SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = process.env;
+const { NODE_ENV, SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = process.env;
 const { User } = require('../models');
 const response = require('../response');
-const serverULR = NODE_ENV === 'development' ? LOCAL_SERVER_URL : SERVER_URL;
+const serverULR = NODE_ENV === 'development' ? '' : SERVER_URL;
 
 const setReturnToFromReferer = function setReturnToFromReferer(req) {
   var referer = req.get('referer');
