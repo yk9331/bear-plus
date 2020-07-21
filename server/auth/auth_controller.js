@@ -154,9 +154,7 @@ function facebookSignin(req, res, next) {
 }
 
 function facebookCallback(req, res, next) {
-  console.log('facebook callback');
   passport.authenticate('facebook', {
-    successReturnToOrRedirect: '/',
     failureRedirect: '/'
   })(req, res, next);
 }
