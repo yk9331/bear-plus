@@ -175,9 +175,14 @@ body{
 }
 
 .note-tab{
-  height: 100px;
+  height: 90px;
   border-bottom: 1px solid rgb(222,222,222);
   background-color: rgb(251,251,251);
+}
+
+.note-tab.current{
+  background-color: white;
+  border-left: 5px solid rgb(205, 86 ,84);
 }
 
 #editor-container{
@@ -333,6 +338,7 @@ body{
   height: 100vh;
   overflow: auto;
   background-color: rgb(251,251,251);
+  background-image: url('/img/note-background.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
