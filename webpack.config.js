@@ -13,14 +13,20 @@ module.exports = {
       path.join(__dirname, 'public/js/index.js'),
       path.join(__dirname, 'public/js/editor.js'),
     ],
+    home: [
+      path.join(__dirname, 'public/js/home.js'),
+    ],
     'note-style': [
-      path.join(__dirname, 'public/css/font.css'),
       path.join(__dirname, 'public/css/codeMirrorEditor.css'),
       path.join(__dirname, 'public/css/codeMirrorEditorEmbeded.css'),
       path.join(__dirname, 'public/css/proseMirror.css'),
       path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
       path.join(__dirname, 'public/css/note.css'),
     ],
+    'home-style': [
+      path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
+      path.join(__dirname, 'public/css/home.css'),
+    ]
   },
 
   output: {
@@ -54,9 +60,21 @@ module.exports = {
       chunksSortMode: 'manual',
     }),
     new HtmlWebpackPlugin({
+      template: './public/views/includes/head.ejs',
+      filename: path.join(__dirname, 'public/views/build/home-head.ejs'),
+      chunks: ['font', 'emoji', 'home-style'],
+      chunksSortMode: 'manual',
+    }),
+    new HtmlWebpackPlugin({
       template: './public/views/includes/scripts.ejs',
       filename: path.join(__dirname, 'public/views/build/note-scripts.ejs'),
       chunks: ['note'],
+      chunksSortMode: 'manual',
+    }),
+    new HtmlWebpackPlugin({
+      template: './public/views/includes/scripts.ejs',
+      filename: path.join(__dirname, 'public/views/build/home-scripts.ejs'),
+      chunks: ['home'],
       chunksSortMode: 'manual',
     }),
     new MiniCssExtractPlugin(),

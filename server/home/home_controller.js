@@ -1,13 +1,14 @@
 const redirectPage = (req, res) => {
-  // TODO:
-  // if (login) { redirect to user profile page}
-  // else {
-  res.redirect('/home');
-  //}
+  if (req.user) {
+    res.redirect(`/@${req.user.userid}`);
+  }
+  else {
+    res.redirect('/home');
+  }
 };
 
 const renderHomepage = (req, res) => {
-  res.send('homepage');
+  res.render('home');
 };
 
 module.exports = {

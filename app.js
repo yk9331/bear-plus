@@ -21,7 +21,7 @@ const realtime = require('./server/realtime/realtime_controller');
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-const port = 5000;
+const port = process.env.PORT;
 
 // Setup Socket
 const io = require('socket.io')(server);
