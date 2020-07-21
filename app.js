@@ -16,7 +16,7 @@ const ejs = require('ejs');
 const models = require('./server/models');
 const config = require('./server/config');
 const response = require('./server/response');
-const realtime = require('./server/realtime');
+const realtime = require('./server/realtime/realtime_controller');
 
 const express = require('express');
 const app = express();
@@ -86,6 +86,7 @@ app.use((err, req, res, next) => {
   response.errorInternalError(req, res);
 });
 
+io.use(realtime.secure);
 io.use(passportSocketIo.authorize({
   cookieParser: cookieParser,
   key: config.sessionName,
