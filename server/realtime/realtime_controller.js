@@ -46,11 +46,9 @@ function onAuthorizeFail(data, message, error, accept) {
 
 function connection(socket) {
   console.log(socket.id,  socket.request.user.id, 'connected');
-  // queueForConnect(socket);
-  // console.log(realtime.io.of('/'));
-  // const noteId = socket.handshake.query.noteId || null;
-  // console.log(noteId);
-
+  socket.on('open note', async ({ noteId, noteUrl }) => {
+    console.log(noteId, noteUrl);
+  });
 }
 
 module.exports = realtime;

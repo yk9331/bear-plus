@@ -4,6 +4,7 @@ const shortId = require('shortid');
 
 // permission types
 var permissionTypes = ['public', 'share', 'private'];
+var stateTypes = ['normal', 'archive', 'trash'];
 
 module.exports = (sequelize, DataTypes) => {
   const Note = sequelize.define('Note', {
@@ -47,6 +48,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     savedAt: {
       type: DataTypes.DATE
+    },
+    state: {
+      type: DataTypes.ENUM,
+      values: stateTypes,
+      defaultValue: 'normal'
+    },
+    pinned: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   });
 

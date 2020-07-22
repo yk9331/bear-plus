@@ -11,4 +11,7 @@ router.route('/home')
 router.route('/:profileId')
   .get(renderUserPage);
 
+router.route('/:profileId/:noteUrl')
+  .get(renderUserPage);
+
 module.exports = router;

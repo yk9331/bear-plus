@@ -5,21 +5,31 @@
       <div class="user-name"><%= JSON.parse(profile).name %></div>
       <div class="user-id"><%= profileId %></div>
     </div>
-  <% } %>
+  <% } else { %>
   <div id="types-container">
-    <div class="tag">
-      <div class="tag-icon"></div>
+    <div id="normal" class="type">
+      <div id="normal-dropdown" class="tag-dropdown material-icons">chevron_right</div>
+      <div class="tag-icon material-icons">description</div>
       <div class="tag-text">Notes</div>
     </div>
-    <div class="tag">
-      <div class="tag-icon"></div>
-      <div class="tag-text">Archive</div>
+    <div id="public" class="sub-type normal-sub">
+      <div class="tag-icon material-icons">public</div>
+      <div class="tag-text">Public</div>
     </div>
-    <div class="tag">
-      <div class="tag-icon"></div>
+    <div id="private" class="sub-type normal-sub">
+      <div class="tag-icon material-icons">person</div>
+      <div class="tag-text">Private</div>
+    </div>
+    <div id="archive" class="type">
+      <div class="tag-icon material-icons">archive</div>
+      <div  class="tag-text">Archive</div>
+    </div>
+    <div id="trash" class="type">
+      <div class="tag-icon material-icons">delete</div>
       <div class="tag-text">Trash</div>
     </div>
   </div>
+  <% } %>
   <div id="tags-container">
     <div id="tags">
       <div class="tag">

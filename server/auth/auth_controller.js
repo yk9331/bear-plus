@@ -23,7 +23,6 @@ const passportGeneralCallback = function callback (accessToken, refreshToken, pr
       profileid: profile.id.toString()
     },
     defaults: {
-      userid: profile.id.toString(),
       profile: stringifiedProfile,
       accessToken: accessToken,
       refreshToken: refreshToken
@@ -116,7 +115,6 @@ async function register(req, res, next) {
       },
       defaults: {
         password: req.body.password,
-        userid: req.body.userId,
         profile: JSON.stringify(profile)
       }
     });

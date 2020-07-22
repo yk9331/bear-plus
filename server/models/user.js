@@ -2,6 +2,7 @@
 const Sequelize = require('sequelize');
 const bcrypt = require('bcrypt');
 const saltRounds = parseInt(process.env.SALT_ROUND);
+const shortId = require('shortid');
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
@@ -12,7 +13,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     userid: {
       type: DataTypes.STRING,
-      unique: true
+      unique: true,
+      allowNull: false,
+      defaultValue: shortId.generate
     },
     profileid: {
       type: DataTypes.STRING,

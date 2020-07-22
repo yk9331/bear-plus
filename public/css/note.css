@@ -28,6 +28,7 @@ body{
   background-color: rgb(47,50,53);
   justify-content: start;
   color: white;
+  cursor: default;
 }
 
 #profile{
@@ -64,25 +65,51 @@ body{
   display: flex;
   flex-direction: column;
   justify-content: start;
+  
+}
+
+#types-container{
+  margin-top: 47px;
+}
+
+#tags-container{
   margin-top: 20px;
 }
 
-#types-container .tag,
+#types-container .type,
 #tags-container .tag{
   text-align: left;
-  padding: 2px 24px;
+  padding: 5px;
   display: flex;
-  align-items: center;
-  
-}
-.tag .tag-icon{
-  width: 20px;
-  height: 20px;
-  background-color: seashell; 
+  justify-content: flex-start;
 }
 
-.tag .tag-text{
+#types-container .sub-type{
+  text-align: left;
+  padding: 5px;
+  display: none;
+  justify-content: flex-start;
+}
+
+#types-container .type.current,
+#types-container .sub-type.current,
+#tags-container .tag.current{
+  background-color: rgb(205, 86 ,84);
+}
+
+.type .tag-icon:first-child,
+.tag .tag-icon:first-child{
+  margin-left: 24px;
+}
+
+.sub-type .tag-icon:first-child{
+  margin-left: 38px;
+}
+
+.tag-text{
   margin-left: 10px;
+  vertical-align: middle;
+  text-align: left;
   font-size: 16px;
 }
 
@@ -161,11 +188,17 @@ body{
   height: 24px;
   border: 1px solid rgb(222,222,222);
   border-radius: 3px;
-  color: lightgray;
-  text-align: center;
-  vertical-align: middle;
+  color: rgb(117,117,117);
+  line-height: 24px;
+  font-size: 18px;
+  padding: 0;
   margin: 5px;
   cursor: pointer;
+  background-color: white;
+}
+
+#new-note:disabled{
+  display: none;
 }
 
 #notes-container{
@@ -178,6 +211,74 @@ body{
   height: 90px;
   border-bottom: 1px solid rgb(222,222,222);
   background-color: rgb(251,251,251);
+  border-left: 5px solid rgb(251,251,251);
+  display: flex;
+  position: relative;
+}
+
+.note-tab:hover .pin,
+.note-tab:hover .archive,
+.note-tab:hover .delete{
+  display: block;
+}
+
+.note-tab .info{
+  position: absolute;
+  top: 0;
+  left: 50px;
+  width: calc(100%-50px);
+  height: 90px;
+  padding: 10px 0;
+}
+
+.note-tab .pin{
+  display: none;
+  cursor: pointer;
+  width: 50px;
+  height: 90px;
+  cursor: pointer;
+  line-height: 90px;
+  text-align: center;
+  color: rgb(185, 184, 184);
+}
+
+.note-tab .pinned{
+  color: rgb(205, 86 ,84);
+  width: 50px;
+  height: 90px;
+  cursor: pointer;
+  line-height: 90px;
+  text-align: center;
+}
+
+.note-tab .archive{
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 50px;
+  width: 50px;
+  height: 90px;
+  background-color: rgb(47,50,53);
+  color: white;
+  text-align: center;
+  line-height: 90px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.note-tab .delete{
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50px;
+  height: 90px;
+  background-color: rgb(205, 86 ,84);
+  color: white;
+  text-align: center;
+  line-height: 90px;
+  cursor: pointer;
+  z-index: 10;
 }
 
 .note-tab.current{
@@ -186,70 +287,36 @@ body{
 }
 
 #editor-container{
+  position: relative;
   width: 60%;
   min-width: 500px;
 }
 
-.editor-tool-btn,
-.info-dashboard-btn{
-  position: absolute;
-  right: 20px;;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  justify-content: center;
-  z-index: 100;
-}
-
-.info-dashboard-btn{
-  top: 20px;
-  border: 1px solid #aaa;
-}
-
-.info-dashboard-btn .circle{
-  width: 2px;
-  height: 2px;
-  background-color: #aaa;
-  border-radius: 50%;
-  margin-bottom: 2px;
-}
-
-.info-dashboard-btn .line{
-  width: 2px;
-  height: 8px;
-  background-color: #aaa;
-}
-
-.editor-tool-btn{
-  top: 60px;
-}
-
-.editor-tool-btn .circle{
-  width: 3px;
-  height: 3px;
-  background-color: #aaa;
-  border-radius: 50%;
-  margin-bottom: 4px;
-}
-
-.editor-tool-btn .circle:last-child{
-  margin-bottom: 0px;
-}
-
-#editor-tool-checkbox,
-#info-dashboard-checkbox{
+#button-container{
   display: none;
+  position: absolute;
+  right: 15px;
+  top: 20px;
+  width: 28px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #aaa;
+  z-index: 100;
+  cursor: default;
 }
 
-#info-dashboard-checkbox:checked ~ #info-dashboard {
-  display: flex;
-  position: absolute;
-  flex-direction: column;
-  text-align: left;
-  margin-left: 0;
+#button-container .icon{
+  margin-bottom: 15px;
+}
+
+#info-btn{
+  transform: rotate(180deg);
+  font-size: 28px;
+}
+
+#share-btn{
+  font-size: 28px;
 }
 
 #info-dashboard,

@@ -1,4 +1,5 @@
 const { Step } = require("prosemirror-transform");
+require('prosemirror-replaceattrs') ;
 const { schema } = require("../../public/js/schema");
 const { getInstance } = require("./instance");
 
@@ -40,7 +41,6 @@ class Waiting {
     this.finish = finish;
     this.done = false;
     resp.setTimeout(1000 * 60 * 5, () => {
-      console.log('timeout');
       this.abort();
       this.send(Output.json({}));
     });
@@ -110,7 +110,9 @@ const collabSend = function (req, res) {
   const { id } = req.params;
   const data = req.body;
   let version = nonNegInteger(data.version);
+  console.log(data.steps);
   let steps = data.steps.map(s => Step.fromJSON(schema, s));
+  // console.log(steps[0]);
   let result = getInstance(id, reqIP(req)).addEvents(version, steps, data.comment, data.clientID);
   if (!result)
     return new Output(409, "Version not current").resp(res);

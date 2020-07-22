@@ -2,7 +2,8 @@ const { User, Note } = require('../models');
 const response = require('../response');
 
 const renderUserPage = async (req, res, next) => {
-  const { profileId } = req.params;
+  const { profileId, noteUrl } = req.params;
+  const noteId = null;  // TOOD: Get Id from database
   if (profileId.search(/^@/) === -1) return next();
   const profileUser = await User.findOne({
     where: {
@@ -17,19 +18,13 @@ const renderUserPage = async (req, res, next) => {
     userId = '@' + req.user.userid;
     userProfile = await User.getProfile(req.user);
   }
-  const noteList = await Note.findAll({
-    where: {
-      ownerId: profileUser.id
-    }
-  });
   res.render('note', {
     title: 'bear+',
     profileId,
     profile: JSON.stringify(profile),
     userId,
-    userProfile: JSON.stringify(userProfile) ,
-    noteList: JSON.stringify(noteList),
-    tagList: null
+    userProfile: JSON.stringify(userProfile),
+    noteId,
   });
 };
 

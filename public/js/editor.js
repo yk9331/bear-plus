@@ -1,16 +1,17 @@
 /* global app, $:true */
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
-import {Step} from "prosemirror-transform";
-import {EditorState} from "prosemirror-state";
-import {EditorView} from "prosemirror-view";
-import {history} from "prosemirror-history";
-import {collab, receiveTransaction, sendableSteps, getVersion} from "prosemirror-collab";
+import { Step } from "prosemirror-transform";
+import 'prosemirror-replaceattrs';    //Registe replaceAttr Step
+import { EditorState } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
+import { history } from "prosemirror-history";
+import { collab, receiveTransaction, sendableSteps, getVersion } from "prosemirror-collab";
 import { MenuItem } from "prosemirror-menu";
 import { imageUploader } from 'prosemirror-image-uploader';
 
-import {schema} from "./schema";
-import {GET, POST} from "./http";
-import {Reporter} from "./reporter";
+import { schema } from "./schema";
+import { GET, POST } from "./http";
+import { Reporter } from "./reporter";
 import { commentPlugin, commentUI, addAnnotation, annotationIcon } from "./comment";
 
 import { CodeBlockView, arrowHandler } from "./codeBlockView";
@@ -242,7 +243,7 @@ class EditorConnection {
 
   setView(view) {
     if (this.view) this.view.destroy();
-    this.view = window.view = view;
+    this.view = app.view = view;
   }
 }
 
@@ -263,6 +264,7 @@ let menu = buildMenuItems(schema);
 menu.fullMenu[0].push(annotationMenuItem);
 
 app.newEditor = function (noteId) {
+  $('#button-container').css('display', 'block');
   if (app.connection) app.connection.close();
   app.connection = new EditorConnection(report, "/api/1.0/" + noteId);
   app.connection.request.then(() => app.connection.view.focus());
