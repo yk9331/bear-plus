@@ -3,9 +3,8 @@ import 'bootstrap';
 
 // Connect to Socket
 var io = require('socket.io-client');
-var socket = io();
+app.socket = io();
 app.view = null;
-
 
 function pinNote(e) {
   updateNoteInfo(e, 'pin');
@@ -49,7 +48,7 @@ function updateNoteInfo(e, action) {
 
 // Create New Note
 $('#new-note').click(() => {
-  fetch('/api/1.0/note')
+  fetch(`/api/1.0/note?currentPermission=${app.currentPermission}`)
     .then(res => res.json())
     .then(({ noteId, noteUrl, noteList }) => {
       $('.note-tab.current').removeClass('current');
@@ -60,6 +59,7 @@ $('#new-note').click(() => {
     });
 });
 
+// Open Note
 $('#notes').click((e) => {
   if ($(e.target).is('span')) return;
   const tab = ($(e.target).attr('class') == 'note-tab' || $(e.target).attr('class') == 'note-tab current') ? $(e.target) : $(e.target).parent();
@@ -70,7 +70,6 @@ $('#notes').click((e) => {
   if (app.view !== null) app.view.destroy();
   app.currentNote = noteId;
   app.newEditor(noteId);
-  socket.emit('open note', { noteId });
 });
 
 function createNotes(noteList, type) {
@@ -143,10 +142,12 @@ function createNotes(noteList, type) {
         $('#button-container').css('display', 'none');
         $('#editor').css('background-image', "url('/img/note-background.png')");
         app.view.destroy();
+      } else if (inList && app.view == null) {
+        app.newEditor($('.note-tab.current').attr('noteId'));
       }
 }
 
-function fetchNotes(type, permission = '') {
+app.fetchNotes = (type, permission = '') => {
   app.currentType = type;
   app.currentPermission = permission;
   $('.type.current').removeClass('current');
@@ -162,23 +163,23 @@ function fetchNotes(type, permission = '') {
       if (!noteList) return;
       createNotes(noteList, type);
     });
-}
+};
 
 $('#normal').click((e) => {
   if (app.currentType == 'normal' && app.currentPermission == '') return;
   $('#new-note').attr('disabled', false);
-  fetchNotes('normal');
+  app.fetchNotes('normal');
 });
+
 $('#archive').click((e) => {
   if (app.currentType == 'archive') return;
   $('#new-note').attr('disabled', true);
-  fetchNotes('archive');
-
+  app.fetchNotes('archive');
 });
 $('#trash').click((e) => {
   if (app.currentType == 'trash') return;
   $('#new-note').attr('disabled', true);
-  fetchNotes('trash');
+  app.fetchNotes('trash');
 });
 
 $('#normal-dropdown').click(() => {
@@ -194,15 +195,15 @@ $('#normal-dropdown').click(() => {
 $('#public').click(() => {
   if (app.currentType == 'normal' && app.currentPermission == 'public') return;
   $('#new-note').attr('disabled', false);
-  fetchNotes('normal', 'public');
+  app.fetchNotes('normal', 'public');
 });
 
 $('#private').click(() => {
   if (app.currentType == 'normal' && app.currentPermission == 'private') return;
   $('#new-note').attr('disabled', false);
-  fetchNotes('normal', 'private');
+  app.fetchNotes('normal', 'private');
 });
 
 $(document).ready(() => {
-  fetchNotes('normal');
+  app.fetchNotes('normal');
 });

@@ -15,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     shortid: {
       type: DataTypes.STRING,
-      unique: true,
       allowNull: false,
       defaultValue: shortId.generate
     },
@@ -58,6 +57,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     }
+  }, {
+    indexes: [
+      {
+          unique: true,
+          fields: ['ownerId', 'shortid']
+      }
+  ]
   });
 
   Note.associate = function (models) {

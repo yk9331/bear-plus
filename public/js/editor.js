@@ -69,7 +69,7 @@ class EditorConnection {
               } else {
                 const formData = new FormData();
                 formData.append('image', fileOrUrl);
-                const url = fetch('http://localhost:5000/api/1.0/editor/image', {
+                const url = fetch('/api/1.0/editor/image', {
                   method: 'POST',
                   body: formData
                 })
@@ -269,5 +269,97 @@ app.newEditor = function (noteId) {
   app.connection = new EditorConnection(report, "/api/1.0/" + noteId);
   app.connection.request.then(() => app.connection.view.focus());
   $('#editor').css('background-image', 'none');
+  $('#sharing-status').css('display', 'none');
+  app.socket.emit('open note', { noteId });
   return true;
 };
+
+$('#note-shortUrl-input').on('input',() => {
+  $('#note-shortUrl-copy').css('display', 'none');
+  $('#note-shortUrl-save').css('display', 'block');
+  $('#sharing-status').css('display', 'block').text('Not saved').removeClass('success').addClass('error');
+});
+
+$('#note-shortUrl-copy').click((e) => {
+  e.preventDefault();
+  const url = $('#note-shortUrl-input').val() == '' ? $('#note-shortUrl-input').attr('noteUrl') : $('#note-shortUrl-input').val();
+  const temp = $('<input>').val(`${document.location.hostname}/${app.profileId}/${url}`);
+  $('body').append(temp);
+  temp.select();
+  document.execCommand('copy');
+  temp.remove();
+});
+
+$('#note-shortUrl-save').click((e) => {
+  e.preventDefault();
+  const data = {
+    noteId: app.currentNote,
+    shortUrl: $('#note-shortUrl-input').val()
+  };
+  fetch('/api/1.0/note/url', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'content-type': 'application/json'
+    },
+  }).then(res => res.json())
+    .then(body => {
+      if (body.error) {
+        $('#sharing-msg').css('display', 'block').text('Already in use, please try another one.').addClass('error');
+      } else {
+        $('#note-shortUrl-copy').css('display', 'block');
+        $('#note-shortUrl-save').css('display', 'none');
+        $('#sharing-status').css('display', 'block').text('Saved').removeClass('error').addClass('success');
+      }
+    });
+});
+
+$(document).on('click', '.dropdown-menu', function (e) {
+  e.stopPropagation();
+});
+
+function changeNotePermission(read, write) {
+  const data = {
+    noteId: app.currentNote,
+    view: read,
+    write
+  };
+  fetch('/api/1.0/note/permission', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'content-type': 'application/json'
+    },
+  });
+}
+
+$('#permission-read').change((e) => {
+  if ($(e.target).val() == 'private') {
+    changeNotePermission('private', 'private');
+    if (app.currentPermission == 'public') {
+      app.currentPermission == '';
+      app.fetchNotes('normal');
+    }
+  } else {
+    changeNotePermission('public', $('#permission-write').val());
+    if (app.currentPermission == 'private') {
+      app.currentPermission == '';
+      app.fetchNotes('normal');
+    }
+  }
+});
+
+$('#permission-write').change((e) => {
+  if ($(e.target).val() == 'public') {
+    changeNotePermission('public', 'public');
+  } else {
+    changeNotePermission($('#permission-read').val(), 'private');
+  }
+});
+
+app.socket.on('update note info', (note) => {
+  console.log(note);
+  $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
+  $('#permission-read').val(note.view_permission);
+  $('#permission-write').val(note.write_permission);
+});

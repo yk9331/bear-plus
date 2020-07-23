@@ -4,6 +4,8 @@ body{
   padding: 0;
   font-family: "Roboto";
   font: 400 15px/24px Roboto;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn{
@@ -290,12 +292,13 @@ body{
   position: relative;
   width: 60%;
   min-width: 500px;
+  overflow: hidden;
 }
 
 #button-container{
   display: none;
   position: absolute;
-  right: 15px;
+  right: 20px;
   top: 20px;
   width: 28px;
   flex-direction: column;
@@ -310,14 +313,60 @@ body{
   margin-bottom: 15px;
 }
 
-#info-btn{
-  transform: rotate(180deg);
+#info-btn,
+#share-btn,
+#menu-btn{
   font-size: 28px;
+}
+#history-btn{
+  font-size: 30px;
 }
 
-#share-btn{
-  font-size: 28px;
+#share-panel li{
+  padding: 0 10px;
+  display: flex;
+  align-items: flex-end;
 }
+
+#sharing-status,
+#sharing-msg{
+  font-size: 12px;
+  line-height: 22px;
+  
+}
+
+#sharing-status{
+  margin-left: auto;
+}
+
+#sharing-status.error,
+#sharing-msg.error{
+  color: rgb(205, 86 ,84);
+}
+#sharing-status.success,
+#sharing-msg.success{
+  color: #28A745;
+}
+
+#note-shortUrl-input{
+  border-top-right-radius: 0;
+  border-bottom-right-radius:0;
+}
+
+#note-shortUrl-save,
+#note-shortUrl-copy{
+  border-top-left-radius: 0;
+  border-bottom-left-radius:0;
+}
+
+#note-shortUrl-save{
+  display: none;
+}
+
+#share-panel .permission-select{
+  padding: 3px 10px;
+}
+
 
 #info-dashboard,
 #editor-tool{

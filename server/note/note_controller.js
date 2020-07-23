@@ -10,20 +10,37 @@ const createNewNote = async (req, res) => {
   if (!req.isAuthenticated()) {
     return response.errorForbidden(req, res);
   }
+  const permission = req.query.currentPermission == '' ? 'private' : req.query.currentPermission;
   const note = await Note.create({
     ownerId: req.user.id,
-    content: ''
+    content: '',
+    view_permission: permission
   });
-  const noteList = await Note.findAll({
-    where: {
-      state: 'normal',
-      ownerId: req.user.id
-    },
-    order: [
-      ['pinned', 'DESC'],
-      ['updatedAt', 'DESC'],
-    ],
-  });
+  let noteList;
+  if (req.query.currentPermission == '') {
+    noteList = await Note.findAll({
+      where: {
+        state: 'normal',
+        ownerId: req.user.id
+      },
+      order: [
+        ['pinned', 'DESC'],
+        ['updatedAt', 'DESC'],
+      ],
+    });
+  } else {
+    noteList = await Note.findAll({
+      where: {
+        view_permission: req.query.currentPermission,
+        state: 'normal',
+        ownerId: req.user.id
+      },
+      order: [
+        ['pinned', 'DESC'],
+        ['updatedAt', 'DESC'],
+      ],
+    });
+  }
   res.json({ noteId: note.id, noteUrl: note.shortid, noteList});
 };
 
@@ -105,6 +122,50 @@ const updateNoteInfo = async (req, res) => {
   res.json({ noteList });
 };
 
+const updateNoteUrl = async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return response.errorForbidden(req, res);
+  }
+  const { noteId, shortUrl } = req.body;
+  const result = await Note.findOne({
+    where: {
+      ownerId: req.user.id,
+      shortid: shortUrl
+    }
+  });
+  if (result) {
+    return res.status(400).json({ error: 'duplicate' });
+  } else {
+    await Note.update({
+      shortid: shortUrl
+    }, {
+      where: {
+        id: noteId
+      }
+    }
+    );
+    return res.status(200).json({ noteId, shortUrl });
+  }
+};
+
+const updateNotePermission = async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return response.errorForbidden(req, res);
+  }
+  const { noteId, view, write } = req.body;
+  await Note.update({
+    view_permission: view,
+    write_permission: write
+  }, {
+    where: {
+      id: noteId
+    }
+  });
+  const note = await Note.findOne({ where: { id: noteId } });
+  req.io.to(noteId).emit('update note info', note);
+  res.status(200).json({ noteId, view, write });
+};
+
 const getNotes = async (req, res) => {
   const profileId = req.query.profileId.replace('@', '');
   const type = req.query.type || 'normal';
@@ -154,7 +215,6 @@ const getNotes = async (req, res) => {
       ],
     });
   }
-  console.log(noteList);
   res.json({ noteList });
 };
 
@@ -163,4 +223,6 @@ module.exports = {
   createNewNote,
   getNotes,
   updateNoteInfo,
+  updateNoteUrl,
+  updateNotePermission
 };

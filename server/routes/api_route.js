@@ -3,10 +3,9 @@ const { upload } = require('../util');
 const s3Upload = upload('');
 const noteImageUpload = s3Upload.fields([{ name: 'image', maxCount: 1 }]);
 
-const { register, emailAuthenticate, facebookSignin, facebookCallback, googleSignin, googleCallback,  signinRedirect} = require('../auth/auth_controller');
-const { uploadImage, createNewNote, getNotes, updateNoteInfo} = require('../note/note_controller');
+const { register, emailAuthenticate, facebookSignin, facebookCallback, googleSignin, googleCallback, signinRedirect } = require('../auth/auth_controller');
+const { uploadImage, createNewNote, getNotes, updateNoteInfo, updateNoteUrl, updateNotePermission} = require('../note/note_controller');
 const { collabStart, collabPoll, collabSend } = require('../collab/collab_controller');
-
 
 // Auth
 router.route('/register')
@@ -41,6 +40,12 @@ router.route('/notes')
 router.route('/note')
   .get(createNewNote);
 
+router.route('/note/url')
+  .post(updateNoteUrl);
+
+router.route('/note/permission')
+  .post(updateNotePermission);
+
 router.route('/note/:action')
   .post(updateNoteInfo);
 
@@ -54,7 +59,5 @@ router.route('/:id')
 router.route('/:id/events')
   .get(collabPoll)
   .post(collabSend);
-
-
 
 module.exports = router;

@@ -1,8 +1,56 @@
 <div id="editor-container">
   <div id="button-container">
-    <div id="info-btn" class="icon material-icons-outlined">error_outline</div>
-    <div id="share-btn" class="icon material-icons-outlined">share</div>
-    <div id="tool-btn" class="icon material-icons-outlined">more_vert</div>
+    <div id="info-btn" class="icon material-icons-outlined">info</div>
+    <div class="btn-group dropleft">
+      <div id="share-btn" type="button" class="icon material-icons-outlined" data-toggle="dropdown" data-offset="10, 10, 0, 0" aria-haspopup="true" aria-expanded="false">
+        share
+      </div>
+      <ul id="share-panel" class="dropdown-menu dropdown-menu-left">
+        <li class="dropdown-header">Sharing
+          <span id="sharing-status"></span>
+        </li>
+        <li class="dropdown-header"><small>https://bear-plus.yenchenkuo.com/<%= profileId %>/</small></li>
+        <li class="dropdown-item-text input-group input-group-sm">
+          <input id="note-shortUrl-input" type="text" class="form-control">
+          <div class="input-group-btn">
+            <button id="note-shortUrl-copy" class="btn btn-outline-secondary btn-sm" type="button">Copy</button>
+          </div>
+          <div class="input-group-btn">
+            <button id="note-shortUrl-save" class="btn btn-outline-success btn-sm" type="button">Save</button>
+          </div>
+          <div id="sharing-msg"></div>
+        </li>
+        <li class="dropdown-divider"></li>
+        <li class="dropdown-header">Note Permission</li>
+        <li class="dropdown-item-text permission-select">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <label class="input-group-text">Read</label>
+            </div>
+            <select class="custom-select" id="permission-read">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </li>
+        
+        <li class="dropdown-item-text permission-select">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <label class="input-group-text">Write</label>
+            </div>
+            <select class="custom-select" id="permission-write">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </li>
+        
+        
+      
+    </div>
+    <div id="history-btn" class="icon material-icons-outlined">history</div>
+    <div id="menu-btn" class="icon material-icons-outlined">palette</div>
   </div>
   
   <div id="editor-tool">

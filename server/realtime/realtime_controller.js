@@ -1,5 +1,6 @@
 const cookie = require('cookie');
 const cookieParser = require('cookie-parser');
+const { Note } = require('../models');
 
 const config = require('../config');
 
@@ -46,8 +47,10 @@ function onAuthorizeFail(data, message, error, accept) {
 
 function connection(socket) {
   console.log(socket.id,  socket.request.user.id, 'connected');
-  socket.on('open note', async ({ noteId, noteUrl }) => {
-    console.log(noteId, noteUrl);
+  socket.on('open note', async ({ noteId }) => {
+    socket.join(noteId);
+    const note = await Note.findOne({ where: { id: noteId } });
+    realtime.io.to(noteId).emit('update note info', note);
   });
 }
 
