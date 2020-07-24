@@ -46,11 +46,21 @@ function onAuthorizeFail(data, message, error, accept) {
 }
 
 function connection(socket) {
-  console.log(socket.id,  socket.request.user.id, 'connected');
+  let currentNote = null;
   socket.on('open note', async ({ noteId }) => {
     socket.join(noteId);
+    currentNote = noteId;
     const note = await Note.findOne({ where: { id: noteId } });
     realtime.io.to(noteId).emit('update note info', note);
+  });
+
+  socket.on('start collab', async ({ noteId }) => {
+    
+  });
+
+  socket.on('close note', async ({ noteId }) => {
+    currentNote = null;
+    socket.leave(noteId);
   });
 }
 
