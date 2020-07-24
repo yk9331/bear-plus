@@ -362,5 +362,4 @@ app.socket.on('update note info', (note) => {
   $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
   $('#permission-read').val(note.view_permission);
   $('#permission-write').val(note.write_permission);
-  $('.note-tab current')
 });

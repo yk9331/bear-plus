@@ -247,39 +247,49 @@ const collabStart = async function (req, res) {
 };
 
 const collabPoll = async function (req, res) {
-  const { id } = req.params;
-  let version = nonNegInteger(req.query.version);
-  let commentVersion = nonNegInteger(req.query.commentVersion);
-  let inst = await getInstance(id, reqIP(req));
-  let data = inst.getEvents(version, commentVersion);
-  if (data === false)
-    return new Output(410, "History no longer available").resp(res);
-  // If the server version is greater than the given version,
-  // return the data immediately.
-  if (data.steps.length || data.comment.length)
-    return outputEvents(inst, data).resp(res);
-  // If the server version matches the given version,
-  // wait until a new version is published to return the event data.
-  let wait = new Waiting(res, inst, reqIP(req), () => {
-    wait.send(outputEvents(inst, inst.getEvents(version, commentVersion)));
-  });
-  inst.waiting.push(wait);
-  res.on("close", () => wait.abort());
+  try {
+    const { id } = req.params;
+    let version = nonNegInteger(req.query.version);
+    let commentVersion = nonNegInteger(req.query.commentVersion);
+    let inst = await getInstance(id, reqIP(req));
+    let data = inst.getEvents(version, commentVersion);
+    if (data === false)
+      return new Output(410, "History no longer available").resp(res);
+    // If the server version is greater than the given version,
+    // return the data immediately.
+    if (data.steps.length || data.comment.length)
+      return outputEvents(inst, data).resp(res);
+    // If the server version matches the given version,
+    // wait until a new version is published to return the event data.
+    let wait = new Waiting(res, inst, reqIP(req), () => {
+      wait.send(outputEvents(inst, inst.getEvents(version, commentVersion)));
+    });
+    inst.waiting.push(wait);
+    res.on("close", () => wait.abort());
+  } catch (e) {
+    console.log(e);
+    return new Output(e.status || 500, e.toString()).resp(res);
+  }
 };
 
 const collabSend = async function (req, res) {
-  const { id } = req.params;
-  const data = req.body;
-  let version = nonNegInteger(data.version);
-  console.log(data.steps);
-  let steps = data.steps.map(s => Step.fromJSON(schema, s));
-  // console.log(steps[0]);
-  const inst = await getInstance(id, reqIP(req));
-  let result = inst.addEvents(version, steps, data.comment, data.clientID);
-  if (!result)
-    return new Output(409, "Version not current").resp(res);
-  else
-    return Output.json(result).resp(res);
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    let version = nonNegInteger(data.version);
+    console.log(data.steps);
+    let steps = data.steps.map(s => Step.fromJSON(schema, s));
+    // console.log(steps[0]);
+    const inst = await getInstance(id, reqIP(req));
+    let result = inst.addEvents(version, steps, data.comment, data.clientID);
+    if (!result)
+      return new Output(409, "Version not current").resp(res);
+    else
+      return Output.json(result).resp(res);
+  } catch (e) {
+    console.log(e);
+    return new Output(e.status || 500, e.toString()).resp(res);
+  }
 };
 
 module.exports = {
