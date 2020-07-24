@@ -11,7 +11,11 @@
         </li>
         <li class="dropdown-header"><small>https://bear-plus.yenchenkuo.com/<%= profileId %>/</small></li>
         <li class="dropdown-item-text input-group input-group-sm">
-          <input id="note-shortUrl-input" type="text" class="form-control">
+          <%if ( profileId == userId) {%>
+            <input id="note-shortUrl-input" type="text" class="form-control">
+          <% } else { %>
+            <input id="note-shortUrl-input" type="text" class="form-control" disabled="true">
+          <% } %>
           <div class="input-group-btn">
             <button id="note-shortUrl-copy" class="btn btn-outline-secondary btn-sm" type="button">Copy</button>
           </div>
@@ -20,6 +24,7 @@
           </div>
           <div id="sharing-msg"></div>
         </li>
+        <%if ( profileId == userId) {%>
         <li class="dropdown-divider"></li>
         <li class="dropdown-header">Note Permission</li>
         <li class="dropdown-item-text permission-select">
@@ -45,9 +50,7 @@
             </select>
           </div>
         </li>
-        
-        
-      
+        <% } %>
     </div>
     <div id="history-btn" class="icon material-icons-outlined">history</div>
     <div id="menu-btn" class="icon material-icons-outlined">palette</div>

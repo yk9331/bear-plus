@@ -38,13 +38,14 @@ const arrowHandlers = keymap({
 });
 
 class EditorConnection {
-  constructor(report, url) {
+  constructor(report, url, editable) {
     this.report = report;
     this.url = url;
     this.state = new State(null, "start");
     this.request = null;
     this.backOff = 0;
     this.view = null;
+    this.editable = editable;
     this.dispatch = this.dispatch.bind(this);
     this.start();
   }
@@ -129,7 +130,8 @@ class EditorConnection {
         this.setView(new EditorView(document.querySelector("#editor"), {
           state: this.state.edit,
           nodeViews: { code_block: (node, view, getPos) => new CodeBlockView(node, view, getPos) },
-          dispatchTransaction: transaction => this.dispatch({type: "transaction", transaction})
+          dispatchTransaction: transaction => this.dispatch({ type: "transaction", transaction }),
+          editable: () => { return this.editable;}
         }));
     } else this.setView(null);
   }
@@ -263,14 +265,15 @@ const annotationMenuItem = new MenuItem({
 let menu = buildMenuItems(schema);
 menu.fullMenu[0].push(annotationMenuItem);
 
-app.newEditor = function (noteId) {
+app.newEditor = function (noteId, editable) {
   $('#button-container').css('display', 'block');
   if (app.connection) app.connection.close();
-  app.connection = new EditorConnection(report, "/api/1.0/" + noteId);
+  app.connection = new EditorConnection(report, "/api/1.0/" + noteId, editable);
   app.connection.request.then(() => app.connection.view.focus());
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
   app.socket.emit('open note', { noteId });
+  console.log('===================opend======================')
   return true;
 };
 

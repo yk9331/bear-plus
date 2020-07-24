@@ -50,12 +50,12 @@ function updateNoteInfo(e, action) {
 $('#new-note').click(() => {
   fetch(`/api/1.0/note?currentPermission=${app.currentPermission}`)
     .then(res => res.json())
-    .then(({ noteId, noteUrl, noteList }) => {
+    .then(({ noteId, noteList }) => {
       $('.note-tab.current').removeClass('current');
       app.currentNote = noteId;
       createNotes(noteList, 'normal');
       if (app.view !== null) app.view.destroy();
-      app.newEditor(noteId);
+      app.newEditor(noteId, true);
     });
 });
 
@@ -77,136 +77,145 @@ $('#notes').click((e) => {
   if (app.view !== null) app.view.destroy();
   app.socket.emit('close note', { noteId: app.currentNote });
   app.currentNote = noteId;
-  app.newEditor(noteId);
+  console.log($('.note-tab.current').attr('write_permission'));
+  if (app.profileId == app.userId || (app.userId && $('.note-tab.current').attr('write_permission') == 'public')) {
+    app.newEditor(noteId, true);
+  } else {
+    app.newEditor(noteId, false);
+  }
 });
 
 function createNotes(noteList, type) {
   $('#notes').empty();
-      let inList = false;
-      switch (type) {
-        case 'normal': {
-          for (let i = 0; i < noteList.length; i++){
-            let noteTab;
-            if (app.profileId == app.userId) {
-              const pinBtn = noteList[i].pinned ?
-                $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
-                $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
-              const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
-              const archiveBtn = $('<span>').text('archive').addClass('archive material-icons-outlined').click(archiveNote);
-              const info = $('<div>').addClass('info');
-              const title = $('<div>').addClass('title').attr('disabled', 'true');
-              const brief = $('<div>').addClass('brief').attr('disabled', 'true');
-              if (noteList[i].title !== null) {
-                title.text(noteList[i].title);
-              }
-              if (noteList[i].brief !== null) {
-                brief.text(noteList[i].brief);
-              }
-              if (noteList[i].title == null && noteList[i].brief == null) {
-                title.text('A wonderful new note').addClass('empty');
-                brief.text('Keep calm and write something');
-              }
-              info.append(title).append(brief);
-              noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('noteUrl', noteList[i].shortid).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn);
-            } else {
-              const pinBtn = noteList[i].pinned ?
-                $('<span>').text('push_pin').addClass('pinned material-icons-outlined').css('cursor', 'pointer') : null;
-              const info = $('<div>').addClass('info');
-              const title = $('<div>').addClass('title').attr('disabled', 'true');
-              const brief = $('<div>').addClass('brief').attr('disabled', 'true');
-              if (noteList[i].title !== null) {
-                title.text(noteList[i].title);
-              }
-              if (noteList[i].brief !== null) {
-                brief.text(noteList[i].brief);
-              }
-              if (noteList[i].title == null && noteList[i].brief == null) {
-                title.text('A wonderful new note').addClass('empty');
-                brief.text('Keep calm and write something');
-              }
-              info.append(title).append(brief);
-              noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('noteUrl', noteList[i].shortid).append(info).append(pinBtn);
-            }
-            $('#notes').append(noteTab);
-            // Set current note
-            if (app.currentNote == noteList[i].id) {
-              inList = true;
-              noteTab.addClass('current');
-            }
+  let inList = false;
+  switch (type) {
+    case 'normal': {
+      for (let i = 0; i < noteList.length; i++){
+        let noteTab;
+        if (app.profileId == app.userId) {
+          const pinBtn = noteList[i].pinned ?
+            $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
+            $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
+          const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
+          const archiveBtn = $('<span>').text('archive').addClass('archive material-icons-outlined').click(archiveNote);
+          const info = $('<div>').addClass('info');
+          const title = $('<div>').addClass('title').attr('disabled', 'true');
+          const brief = $('<div>').addClass('brief').attr('disabled', 'true');
+          if (noteList[i].title !== null) {
+            title.text(noteList[i].title);
           }
-          break;
+          if (noteList[i].brief !== null) {
+            brief.text(noteList[i].brief);
+          }
+          if (noteList[i].title == null && noteList[i].brief == null) {
+            title.text('A wonderful new note').addClass('empty');
+            brief.text('Keep calm and write something');
+          }
+          info.append(title).append(brief);
+          noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('write_permission', noteList[i].write_permission).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn);
+        } else {
+          const pinBtn = noteList[i].pinned ?
+            $('<span>').text('push_pin').addClass('pinned material-icons-outlined').css('cursor', 'pointer') : null;
+          const info = $('<div>').addClass('info');
+          const title = $('<div>').addClass('title').attr('disabled', 'true');
+          const brief = $('<div>').addClass('brief').attr('disabled', 'true');
+          if (noteList[i].title !== null) {
+            title.text(noteList[i].title);
+          }
+          if (noteList[i].brief !== null) {
+            brief.text(noteList[i].brief);
+          }
+          if (noteList[i].title == null && noteList[i].brief == null) {
+            title.text('A wonderful new note').addClass('empty');
+            brief.text('Keep calm and write something');
+          }
+          info.append(title).append(brief);
+          noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('write_permission', noteList[i].write_permission).append(info).append(pinBtn);
         }
-        case 'archive': {
-          for (let i = 0; i < noteList.length; i++){
-            const pinBtn = noteList[i].pinned ?
-                $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
-                $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
-            const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
-            const archiveBtn = $('<span>').text('unarchive').addClass('archive material-icons-outlined').click(restoreNote);
-            const info = $('<div>').addClass('info');
-            const title = $('<div>').addClass('title').attr('disabled', 'true');
-            const brief = $('<div>').addClass('brief').attr('disabled', 'true');
-            if (noteList[i].title !== null) {
-              title.text(noteList[i].title);
-            }
-            if (noteList[i].brief !== null) {
-              brief.text(noteList[i].brief);
-            }
-            if (noteList[i].title == null && noteList[i].brief == null) {
-              title.text('A wonderful new note').addClass('empty');
-              brief.text('Keep calm and write something');
-            }
-            info.append(title).append(brief);
-            const noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('noteUrl', noteList[i].shortid).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn);
-            $('#notes').append(noteTab);
-            // Set current note
-            if (app.currentNote == noteList[i].id) {
-              inList = true;
-              noteTab.addClass('current');
-            }
-          }
-          break;
-        }
-        case 'trash': {
-          for (let i = 0; i < noteList.length; i++){
-            const pinBtn = noteList[i].pinned ?
-                $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
-                $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
-            const deleteBtn = $('<span>').text('delete_forever').addClass('delete material-icons-outlined').click(deleteNote);
-            const restoreBtn = $('<span>').text('restore_from_trash').addClass('archive material-icons-outlined').click(restoreNote);
-            const info = $('<div>').addClass('info');
-            const title = $('<div>').addClass('title').attr('disabled', 'true');
-            const brief = $('<div>').addClass('brief').attr('disabled', 'true');
-            if (noteList[i].title !== null) {
-              title.text(noteList[i].title);
-            }
-            if (noteList[i].brief !== null) {
-              brief.text(noteList[i].brief);
-            }
-            if (noteList[i].title == null && noteList[i].brief == null) {
-              title.text('A wonderful new note').addClass('empty');
-              brief.text('Keep calm and write something');
-            }
-            info.append(title).append(brief);
-            const noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('noteUrl', noteList[i].shortid).append(pinBtn).append(info).append(deleteBtn).append(restoreBtn);
-            $('#notes').append(noteTab);
-            // Set current note
-            if (app.currentNote == noteList[i].id) {
-              inList = true;
-              noteTab.addClass('current');
-            }
-          }
-          break;
+        $('#notes').append(noteTab);
+        // Set current note
+        if (app.currentNote == noteList[i].id) {
+          inList = true;
+          noteTab.addClass('current');
         }
       }
-      if (!inList && app.view != null) {
-        app.currentNote = null;
-        $('#button-container').css('display', 'none');
-        $('#editor').css('background-image', "url('/img/note-background.png')");
-        app.view.destroy();
-      } else if (inList && app.view == null) {
-        app.newEditor($('.note-tab.current').attr('noteId'));
+      break;
+    }
+    case 'archive': {
+      for (let i = 0; i < noteList.length; i++){
+        const pinBtn = noteList[i].pinned ?
+            $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
+            $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
+        const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
+        const archiveBtn = $('<span>').text('unarchive').addClass('archive material-icons-outlined').click(restoreNote);
+        const info = $('<div>').addClass('info');
+        const title = $('<div>').addClass('title').attr('disabled', 'true');
+        const brief = $('<div>').addClass('brief').attr('disabled', 'true');
+        if (noteList[i].title !== null) {
+          title.text(noteList[i].title);
+        }
+        if (noteList[i].brief !== null) {
+          brief.text(noteList[i].brief);
+        }
+        if (noteList[i].title == null && noteList[i].brief == null) {
+          title.text('A wonderful new note').addClass('empty');
+          brief.text('Keep calm and write something');
+        }
+        info.append(title).append(brief);
+        const noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('write_permission', noteList[i].write_permission).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn);
+        $('#notes').append(noteTab);
+        // Set current note
+        if (app.currentNote == noteList[i].id) {
+          inList = true;
+          noteTab.addClass('current');
+        }
       }
+      break;
+    }
+    case 'trash': {
+      for (let i = 0; i < noteList.length; i++){
+        const pinBtn = noteList[i].pinned ?
+            $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
+            $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
+        const deleteBtn = $('<span>').text('delete_forever').addClass('delete material-icons-outlined').click(deleteNote);
+        const restoreBtn = $('<span>').text('restore_from_trash').addClass('archive material-icons-outlined').click(restoreNote);
+        const info = $('<div>').addClass('info');
+        const title = $('<div>').addClass('title').attr('disabled', 'true');
+        const brief = $('<div>').addClass('brief').attr('disabled', 'true');
+        if (noteList[i].title !== null) {
+          title.text(noteList[i].title);
+        }
+        if (noteList[i].brief !== null) {
+          brief.text(noteList[i].brief);
+        }
+        if (noteList[i].title == null && noteList[i].brief == null) {
+          title.text('A wonderful new note').addClass('empty');
+          brief.text('Keep calm and write something');
+        }
+        info.append(title).append(brief);
+        const noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('write_permission', noteList[i].write_permission).append(pinBtn).append(info).append(deleteBtn).append(restoreBtn);
+        $('#notes').append(noteTab);
+        // Set current note
+        if (app.currentNote == noteList[i].id) {
+          inList = true;
+          noteTab.addClass('current');
+        }
+      }
+      break;
+    }
+  }
+  if (!inList && app.view != null) {
+    app.currentNote = null;
+    $('#button-container').css('display', 'none');
+    $('#editor').css('background-image', "url('/img/note-background.png')");
+    app.view.destroy();
+  } else if (inList && app.view == null) {
+    if (app.profileId == app.userId || (app.userId && $('.note-tab.current').attr('write_permission') == 'public')) {
+      app.newEditor($('.note-tab.current').attr('noteId'), true);
+    } else {
+      app.newEditor($('.note-tab.current').attr('noteId'), false);
+    }
+  }
 }
 
 app.fetchNotes = (type, permission = '') => {
@@ -238,6 +247,7 @@ $('#archive').click((e) => {
   $('#new-note').attr('disabled', true);
   app.fetchNotes('archive');
 });
+
 $('#trash').click((e) => {
   if (app.currentType == 'trash') return;
   $('#new-note').attr('disabled', true);

@@ -5,7 +5,6 @@ const { Mapping } = require("prosemirror-transform");
 const { Comments, Comment } = require("./comments");
 
 const { Note } = require('../models');
-const { text } = require("body-parser");
 
 const MAX_STEP_HISTORY = 10000;
 const instances = Object.create(null);
@@ -129,9 +128,11 @@ class Instance {
     let text = '';
     if (this.doc) {
       const d = this.doc.toJSON().content;
-      for (let i = 1; i < d.length; i++){
-        text += d[i].content.reduce((acc, cur) => acc + cur.text, '');
-        if (text.length > 200) break;
+      if (d.length > 1) {
+        for (let i = 1; i < d.length; i++){
+          text += d[i].content.reduce((acc, cur) => acc + cur.text, '');
+          if (text.length > 200) break;
+        }
       }
     }
     const brief = text == '' ? null : text;
