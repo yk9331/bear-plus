@@ -5,7 +5,6 @@ const noteImageUpload = s3Upload.fields([{ name: 'image', maxCount: 1 }]);
 
 const { register, emailAuthenticate, facebookSignin, facebookCallback, googleSignin, googleCallback, signinRedirect } = require('../auth/auth_controller');
 const { uploadImage, createNewNote, getNotes, updateNoteInfo, updateNoteUrl, updateNotePermission} = require('../note/note_controller');
-const { collabStart, collabPoll, collabSend } = require('../collab/collab_controller');
 
 // Auth
 router.route('/register')
@@ -52,12 +51,5 @@ router.route('/note/:action')
 // Editor
 router.route('/editor/image')
   .post(noteImageUpload, uploadImage);
-
-router.route('/:id')
-  .get(collabStart);
-
-router.route('/:id/events')
-  .get(collabPoll)
-  .post(collabSend);
 
 module.exports = router;

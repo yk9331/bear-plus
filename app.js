@@ -86,7 +86,6 @@ app.use((err, req, res, next) => {
   response.errorInternalError(req, res);
 });
 
-io.use(realtime.secure);
 io.use(passportSocketIo.authorize({
   cookieParser: cookieParser,
   key: config.sessionName,

@@ -10,7 +10,6 @@ import { MenuItem } from "prosemirror-menu";
 import { imageUploader } from 'prosemirror-image-uploader';
 
 import { schema } from "./schema";
-import { GET, POST } from "./http";
 import { Reporter } from "./reporter";
 import { commentPlugin, commentUI, addAnnotation, annotationIcon } from "./comment";
 
@@ -138,18 +137,7 @@ class EditorConnection {
 
   // Load the document from the server and start up
   start() {
-    this.run(GET(this.url)).then(data => {
-      data = JSON.parse(data);
-      this.report.success();
-      this.backOff = 0;
-      this.dispatch({type: "loaded",
-                     doc: schema.nodeFromJSON(data.doc),
-                     version: data.version,
-                     users: data.users,
-                     comments: {version: data.commentVersion, comments: data.comments}});
-    }, err => {
-      this.report.failure(err);
-    });
+    app.socket.emit('start collab', { noteId: app.currentNote });
   }
 
   // Send a request for events that have happened since the version
@@ -157,27 +145,10 @@ class EditorConnection {
   // for a new version of the document to be created if the client
   // is already up-to-date.
   poll() {
-    let query = "version=" + getVersion(this.state.edit) + "&commentVersion=" + commentPlugin.getState(this.state.edit).version;
-    this.run(GET(this.url + "/events?" + query)).then(data => {
-      this.report.success();
-      data = JSON.parse(data);
-      this.backOff = 0;
-      if (data.steps && (data.steps.length || data.comment.length)) {
-        let tr = receiveTransaction(this.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
-        tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: data.comment, sent: 0});
-        this.dispatch({type: "transaction", transaction: tr, requestDone: true});
-      } else {
-        this.poll();
-      }
-      // info.users.textContent = userString(data.users);
-    }, err => {
-      if (err.status == 410 || badVersion(err)) {
-        // Too far behind. Revert to server state
-        this.report.failure(err);
-        this.dispatch({type: "restart"});
-      } else if (err) {
-        this.dispatch({type: "recover", error: err});
-      }
+    app.socket.emit('get collab', {
+      noteId: app.currentNote,
+      version: getVersion(this.state.edit),
+      commentVersion: commentPlugin.getState(this.state.edit).version
     });
   }
 
@@ -188,32 +159,16 @@ class EditorConnection {
   }
 
   // Send the given steps to the server
-  send(editState, {steps, comments}) {
-    let json = JSON.stringify({version: getVersion(editState),
-                               steps: steps ? steps.steps.map(s => s.toJSON()) : [],
-                               clientID: steps ? steps.clientID : 0,
-                               comment: comments || []});
-    this.run(POST(this.url + "/events", json, "application/json")).then(data => {
-      console.log(data);
-      this.report.success();
-      this.backOff = 0;
-      let tr = steps
-          ? receiveTransaction(this.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
-          : this.state.edit.tr;
-      tr.setMeta(commentPlugin, {type: "receive", version: JSON.parse(data).commentVersion, events: [], sent: comments.length});
-      this.dispatch({type: "transaction", transaction: tr, requestDone: true});
-    }, err => {
-      if (err.status == 409) {
-        // The client's document conflicts with the server's version.
-        // Poll for changes and then try again.
-        this.backOff = 0;
-        this.dispatch({type: "poll"});
-      } else if (badVersion(err)) {
-        this.report.failure(err);
-        this.dispatch({type: "restart"});
-      } else {
-        this.dispatch({type: "recover", error: err});
-      }
+  send(editState, { steps, comments }) {
+    this.sent = null;
+    this.sent = { steps, comments };
+    app.socket.emit('post collab', {
+      noteId: app.currentNote,
+      version: getVersion(editState),
+      commentVersion: commentPlugin.getState(this.state.edit).version,
+      steps: steps ? steps.steps.map(s => s.toJSON()) : [],
+      clientID: steps ? steps.clientID : 0,
+      comment: comments || []
     });
   }
 
@@ -266,14 +221,12 @@ let menu = buildMenuItems(schema);
 menu.fullMenu[0].push(annotationMenuItem);
 
 app.newEditor = function (noteId, editable) {
-  $('#button-container').css('display', 'block');
   if (app.connection) app.connection.close();
+  app.socket.emit('open note', { noteId });
+  $('#button-container').css('display', 'block');
   app.connection = new EditorConnection(report, "/api/1.0/" + noteId, editable);
-  app.connection.request.then(() => app.connection.view.focus());
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
-  app.socket.emit('open note', { noteId });
-  console.log('===================opend======================')
   return true;
 };
 
@@ -365,4 +318,58 @@ app.socket.on('update note info', (note) => {
   $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
   $('#permission-read').val(note.view_permission);
   $('#permission-write').val(note.write_permission);
+});
+
+app.socket.on('collab started', (data) => {
+  console.log('started', data);
+  app.connection.report.success();
+  app.connection.backOff = 0;
+  app.connection.dispatch({
+    type: "loaded",
+    doc: schema.nodeFromJSON(data.doc),
+    version: data.version,
+    users: data.users,
+    comments: { version: data.commentVersion, comments: data.comments }
+  });
+});
+
+app.socket.on('collab posted', (data) => {
+  console.log('posted', data);
+  app.connection.report.success();
+  app.connection.backOff = 0;
+  const { steps, comments } = app.connection.sent;
+  let tr = steps
+      ? receiveTransaction(app.connection.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
+      : app.connection.state.edit.tr;
+  tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: [], sent: comments.length});
+  app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+});
+
+app.socket.on('collab updated', (data) => {
+  console.log('updated', data);
+  app.connection.report.success();
+  app.connection.backOff = 0;
+  if (data.steps && (data.steps.length || data.comment.length)) {
+    let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
+    tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: data.comment, sent: 0});
+    app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+    app.connection.view.focus();
+  } else {
+    app.connection.poll();
+  }
+});
+
+app.socket.on('collab error', (error) => {
+  console.log('collab error', error);
+  if (error.status == 409) {
+    // The client's document conflicts with the server's version.
+    // Poll for changes and then try again.
+    app.connection.backOff = 0;
+    app.connection.dispatch({type: "poll"});
+  } else if (error.status == 410 || badVersion(error)) {
+    app.connection.report.failure(error);
+    app.connection.dispatch({type: "restart"});
+  } else {
+    app.connection.dispatch({type: "recover", error: error});
+  }
 });

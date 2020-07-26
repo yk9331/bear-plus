@@ -20,15 +20,11 @@ class Instance {
     this.version = 0;
     this.steps = [];
     this.lastActive = Date.now();
-    this.users = Object.create(null);
-    this.userCount = 0;
-    this.waiting = [];
-    this.collecting = null;
-    this.setTimeout = null;
+    this.saveTimeout = null;
   }
 
   stop() {
-    if (this.collecting != null) clearInterval(this.collecting);
+    // stop instance
   }
 
   addEvents(version, steps, comments, clientID) {
@@ -56,13 +52,8 @@ class Instance {
         this.comments.created(event);
     }
 
-    this.sendUpdates();
     this.scheduleSave();
     return {version: this.version, commentVersion: this.comments.version};
-  }
-
-  sendUpdates() {
-    while (this.waiting.length) this.waiting.pop().finish();
   }
 
   // : (Number)
@@ -87,34 +78,7 @@ class Instance {
     if (commentStartIndex < 0) return false;
 
     return {steps: this.steps.slice(startIndex),
-            comment: this.comments.eventsAfter(commentStartIndex),
-            users: this.userCount};
-  }
-
-  collectUsers() {
-    const oldUserCount = this.userCount;
-    this.users = Object.create(null);
-    this.userCount = 0;
-    this.collecting = null;
-    for (let i = 0; i < this.waiting.length; i++)
-      this._registerUser(this.waiting[i].ip);
-    if (this.userCount != oldUserCount) this.sendUpdates();
-  }
-
-  registerUser(ip) {
-    if (!(ip in this.users)) {
-      this._registerUser(ip);
-      this.sendUpdates();
-    }
-  }
-
-  _registerUser(ip) {
-    if (!(ip in this.users)) {
-      this.users[ip] = true;
-      this.userCount++;
-      if (this.collecting == null)
-        this.collecting = setTimeout(() => this.collectUsers(), 5000);
-    }
+            comment: this.comments.eventsAfter(commentStartIndex)};
   }
 
   scheduleSave() {
@@ -126,14 +90,18 @@ class Instance {
     this.saveTimeout = null;
     const title = (this.doc && this.doc.toJSON().content[0].content) ? this.doc.toJSON().content[0].content.reduce((acc, cur) => acc + cur.text, '') : null;
     let text = '';
-    if (this.doc) {
-      const d = this.doc.toJSON().content;
-      if (d.length > 1) {
+    try {
+      if (this.doc) {
+        const d = this.doc.toJSON().content;
         for (let i = 1; i < d.length; i++){
-          text += d[i].content.reduce((acc, cur) => acc + cur.text, '');
-          if (text.length > 200) break;
+          if (d[i].content) {
+            text += d[i].content.reduce((acc, cur) => acc + cur.text, '');
+            if (text.length > 200) break;
+          }
         }
       }
+    } catch (e) {
+      console.log(e);
     }
     const brief = text == '' ? null : text;
     Note.update({
@@ -150,9 +118,8 @@ class Instance {
   }
 }
 
-async function getInstance(id, ip) {
-  let inst = instances[id] || await newInstance(id);
-  if (ip) inst.registerUser(ip);
+async function getInstance(noteId) {
+  let inst = instances[noteId] || await newInstance(noteId);
   inst.lastActive = Date.now();
   return inst;
 }
@@ -165,136 +132,53 @@ async function newInstance(id) {
   return instances[id] = new Instance(id, doc, comments);
 }
 
-// Object that represents an HTTP response.
-class Output {
-  constructor(code, body, type) {
-    this.code = code;
-    this.body = body;
-    this.type = type || "text/plain";
-  }
-
-  static json(data) {
-    return new Output(200, JSON.stringify(data), "application/json");
-  }
-
-  // Write the response.
-  resp(res) {
-    res.set('Content-Type', this.type);
-    res.status(this.code).send(this.body);
-  }
-}
-
-function nonNegInteger(str) {
-  let num = Number(str);
-  if (!isNaN(num) && Math.floor(num) == num && num >= 0) return num;
-  let err = new Error("Not a non-negative integer: " + str);
-  err.status = 400;
-  throw err;
-}
-
-// An object to assist in waiting for a collaborative editing
-// instance to publish a new version before sending the version
-// event data to the client.
-class Waiting {
-  constructor(resp, inst, ip, finish) {
-    this.resp = resp;
-    this.inst = inst;
-    this.ip = ip;
-    this.finish = finish;
-    this.done = false;
-    resp.setTimeout(1000 * 60 * 5, () => {
-      this.abort();
-      this.send(Output.json({}));
-    });
-  }
-
-  abort() {
-    let found = this.inst.waiting.indexOf(this);
-    if (found > -1) this.inst.waiting.splice(found, 1);
-  }
-
-  send(output) {
-    if (this.done) return;
-    output.resp(this.resp);
-    this.done = true;
-  }
-}
-
-function outputEvents(inst, data) {
-  return Output.json({
-    version: inst.version,
-    commentVersion: inst.comments.version,
-    steps: data.steps.map(s => s.toJSON()),
-    clientIDs: data.steps.map(step => step.clientID),
-    comment: data.comment,
-    users: data.users
-  });
-}
-
-function reqIP(request) {
-  return request.headers["x-forwarded-for"] || request.socket.remoteAddress;
-}
-
-const collabStart = async function (req, res) {
-  const { id } = req.params;
-  let inst = await getInstance(id, reqIP(req));
-  return Output.json({
+const startCollab = async function (noteId) {
+  const inst = await getInstance(noteId);
+  return {
     doc: inst.doc.toJSON(),
-    users: inst.userCount,
     version: inst.version,
     comments: inst.comments.comments,
     commentVersion: inst.comments.version
-  }).resp(res);
+  };
 };
 
-const collabPoll = async function (req, res) {
-  try {
-    const { id } = req.params;
-    let version = nonNegInteger(req.query.version);
-    let commentVersion = nonNegInteger(req.query.commentVersion);
-    let inst = await getInstance(id, reqIP(req));
-    let data = inst.getEvents(version, commentVersion);
-    if (data === false)
-      return new Output(410, "History no longer available").resp(res);
-    // If the server version is greater than the given version,
-    // return the data immediately.
-    if (data.steps.length || data.comment.length)
-      return outputEvents(inst, data).resp(res);
-    // If the server version matches the given version,
-    // wait until a new version is published to return the event data.
-    let wait = new Waiting(res, inst, reqIP(req), () => {
-      wait.send(outputEvents(inst, inst.getEvents(version, commentVersion)));
-    });
-    inst.waiting.push(wait);
-    res.on("close", () => wait.abort());
-  } catch (e) {
-    console.log(e);
-    return new Output(e.status || 500, e.toString()).resp(res);
+const getCollab = async function (data) {
+  const inst = await getInstance(data.noteId);
+  const resultData = inst.getEvents(data.version, data.commentVersion);
+  if (resultData == false) {
+    const err = new Error('History no longer available');
+    err.status = 410;
+    throw err;
+  }
+  if (resultData.steps.length || resultData.comment.length) {
+    const result = {
+      version: inst.version,
+      commentVersion: inst.comments.version,
+      steps: resultData.steps.map(s => s.toJSON()),
+      clientIDs: resultData.steps.map(step => step.clientID),
+      comment: resultData.comment,
+    };
+    return result;
+  } else {
+    return false;
   }
 };
 
-const collabSend = async function (req, res) {
-  try {
-    const { id } = req.params;
-    const data = req.body;
-    let version = nonNegInteger(data.version);
-    console.log(data.steps);
-    let steps = data.steps.map(s => Step.fromJSON(schema, s));
-    // console.log(steps[0]);
-    const inst = await getInstance(id, reqIP(req));
-    let result = inst.addEvents(version, steps, data.comment, data.clientID);
-    if (!result)
-      return new Output(409, "Version not current").resp(res);
-    else
-      return Output.json(result).resp(res);
-  } catch (e) {
-    console.log(e);
-    return new Output(e.status || 500, e.toString()).resp(res);
+const postCollab = async function (data) {
+  const steps = data.steps.map(s => Step.fromJSON(schema, s));
+  const inst = await getInstance(data.noteId);
+  const result = inst.addEvents(data.version, steps, data.comment, data.clientID);
+  if (result == false) {
+    const err = new Error('Version note current');
+    err.status = 409;
+    throw err;
+  } else {
+    return result;
   }
 };
 
 module.exports = {
-  collabStart,
-  collabPoll,
-  collabSend,
+  startCollab,
+  getCollab,
+  postCollab
 };

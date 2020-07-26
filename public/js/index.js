@@ -75,10 +75,11 @@ $('#notes').click((e) => {
   $('.note-tab.current').removeClass('current');
   tab.addClass('current');
   if (app.view !== null) app.view.destroy();
-  app.socket.emit('close note', { noteId: app.currentNote });
+  if (app.currentNote !== null) {
+    app.socket.emit('close note', { noteId: app.currentNote });
+  }
   app.currentNote = noteId;
-  console.log($('.note-tab.current').attr('write_permission'));
-  if (app.profileId == app.userId || (app.userId && $('.note-tab.current').attr('write_permission') == 'public')) {
+  if (app.profileId == app.userId || (app.userId !== '' && $('.note-tab.current').attr('write_permission') == 'public')) {
     app.newEditor(noteId, true);
   } else {
     app.newEditor(noteId, false);
