@@ -22,10 +22,6 @@ import { keymap } from 'prosemirror-keymap';
 
 const report = new Reporter();
 
-function badVersion(err) {
-  return err.status == 400 && /invalid version/i.test(err);
-}
-
 class State {
   constructor(edit, comm) {
     this.edit = edit;
@@ -424,6 +420,10 @@ app.socket.on('collab updated', (data) => {
     app.connection.poll();
   }
 });
+
+function badVersion(err) {
+  return err.status == 400 && /invalid version/i.test(err.msg);
+}
 
 app.socket.on('collab error', (error) => {
   console.log('collab error', error);
