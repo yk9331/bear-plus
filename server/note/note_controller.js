@@ -227,23 +227,13 @@ const getNotes = async (req, res) => {
         }
       });
     } else {
+      const userId = await User.findOne({ where: { userid: profileId } });
       noteList = await Note.findAll({
         where: {
           view_permission: 'public',
-          state: 'normal'
+          state: 'normal',
+          ownerId: userId.id
         },
-        includes: [{
-          model: User,
-          where: {
-            userid: profileId,
-          }
-        }, {
-            model: Tag,
-            where: {
-              id: tag
-          }
-        }
-        ],
         order: [
           ['pinned', 'DESC'],
           ['updatedAt', 'DESC'],
