@@ -409,15 +409,15 @@ app.socket.on('collab posted', (data) => {
 
 app.socket.on('collab updated', (data) => {
   console.log('updated', data);
-  app.connection.report.success();
-  app.connection.backOff = 0;
-  if (data.steps && (data.steps.length || data.comment.length)) {
-    let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
-    tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: data.comment, sent: 0});
-    app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
-    app.connection.view.focus();
-  } else {
-    app.connection.poll();
+  if (app.connection.state.comm != 'start' && app.connection.state.comm != null) {
+    app.connection.report.success();
+    app.connection.backOff = 0;
+    if (data.steps && (data.steps.length || data.comment.length)) {
+      let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
+      tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: data.comment, sent: 0});
+      app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+      app.connection.view.focus();
+    }
   }
 });
 
