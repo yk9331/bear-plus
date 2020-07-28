@@ -4,7 +4,7 @@ const s3Upload = upload('');
 const noteImageUpload = s3Upload.fields([{ name: 'image', maxCount: 1 }]);
 
 const { register, emailAuthenticate, facebookSignin, facebookCallback, googleSignin, googleCallback, signinRedirect } = require('../auth/auth_controller');
-const { uploadImage, createNewNote, getNotes, updateNoteInfo, updateNoteUrl, updateNotePermission} = require('../note/note_controller');
+const { uploadImage, createNewNote, getNotes, getTags, updateNoteInfo, updateNoteUrl, updateNotePermission, updateNoteHashtag} = require('../note/note_controller');
 
 // Auth
 router.route('/register')
@@ -35,6 +35,10 @@ router.route('/logout')
 router.route('/notes')
   .get(getNotes);
 
+//Tags
+router.route('/tags')
+  .get(getTags);
+
 // Note
 router.route('/note')
   .get(createNewNote);
@@ -51,5 +55,8 @@ router.route('/note/:action')
 // Editor
 router.route('/editor/image')
   .post(noteImageUpload, uploadImage);
+
+router.route('/editor/hashtag')
+  .post(updateNoteHashtag);
 
 module.exports = router;

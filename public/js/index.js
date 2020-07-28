@@ -219,17 +219,21 @@ function createNotes(noteList, type) {
   }
 }
 
-app.fetchNotes = (type, permission = '') => {
+app.fetchNotes = (type, permission = '', tag = '') => {
   app.currentType = type;
   app.currentPermission = permission;
+  app.currentTag = tag;
   $('.type.current').removeClass('current');
   $('.sub-type.current').removeClass('current');
-  if (permission != '') {
+  $('.tag.current').removeClass('current');
+  if (tag != '') {
+    $(`#${tag}`).addClass('current');
+  }else if (permission != '') {
     $(`#${permission}`).addClass('current');
   } else {
     $(`#${type}`).addClass('current');
   }
-  fetch(`/api/1.0/notes?profileId=${app.profileId}&&type=${type}&&permission=${permission}`)
+  fetch(`/api/1.0/notes?profileId=${app.profileId}&&type=${type}&&permission=${permission}&&tag=${tag}`)
     .then(res => res.json())
     .then(({ noteList }) => {
       if (!noteList) return;
@@ -238,9 +242,13 @@ app.fetchNotes = (type, permission = '') => {
 };
 
 $('#normal').click((e) => {
-  if (app.currentType == 'normal' && app.currentPermission == '') return;
-  $('#new-note').attr('disabled', false);
-  app.fetchNotes('normal');
+  if (app.profileId !== app.userId) {
+    app.fetchNotes('normal');
+  } else {
+    if (app.currentType == 'normal' && app.currentPermission == '') return;
+    $('#new-note').attr('disabled', false);
+    app.fetchNotes('normal');
+  }
 });
 
 $('#archive').click((e) => {
@@ -277,6 +285,28 @@ $('#private').click(() => {
   app.fetchNotes('normal', 'private');
 });
 
+function createTags(tagList) {
+  $('#tags').empty();
+  for (let i = 0; i < tagList.length; i++) {
+    console.log(tagList[i]);
+    const icon = $('<div>').addClass('tag-icon material-icons-outlined').text('local_offer');
+    const text = $('<div>').addClass('tag-text').text(tagList[i].tag);
+    const tag = $('<div>').addClass('tag').attr('id', tagList[i].id).append(icon).append(text);
+    tag.click(() => { app.fetchNotes('normal', '', tagList[i].id); });
+    $('#tags').append(tag);
+  }
+}
+
+app.fetchTags = () => {
+  fetch(`/api/1.0/tags?profileId=${app.profileId}`)
+    .then(res => res.json())
+    .then(({ tagList }) => {
+      if (!tagList) return;
+      createTags(tagList);
+    });
+};
+
 $(document).ready(() => {
   app.fetchNotes('normal');
+  app.fetchTags();
 });

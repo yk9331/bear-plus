@@ -1,4 +1,5 @@
 const { Schema }  = require('prosemirror-model');
+const { tagNodeSpec, mentionNodeSpec } = require('@quartzy/prosemirror-suggestions');
 // ::Schema Document schema for the data model used by CommonMark.
 exports.schema = new Schema({
   nodes: {
@@ -128,6 +129,7 @@ exports.schema = new Schema({
         return ['img', { src, alt, title, uploadId, error }];
       },
     },
+
     emoji: {
       inline: true,
       group: 'inline',
@@ -144,6 +146,40 @@ exports.schema = new Schema({
       selectable: false,
       parseDOM: [{ tag: 'br' }],
       toDOM() { return ['br']; },
+    },
+    mention: mentionNodeSpec,
+    tag: {
+      attrs: {
+        id: {}
+      },
+      defining: true,
+      group: 'inline',
+      inline: true,
+      selectable: true,
+      atom: true,
+      /**
+       * @param {Node} node
+       */
+      toDOM: function toDOM(node) {
+        return ['span', {
+          'class': 'tag',
+          'data-tag-id': node.attrs.id
+        }, node.attrs.id];
+      },
+    
+      parseDOM: [{
+        tag: 'span[data-tag-id]',
+    
+        /**
+         * @param {Element} dom
+         * @returns {{id: string}}
+         */
+        getAttrs: function getAttrs(dom) {
+          var id = dom.getAttribute('data-tag-id');
+    
+          return { id: id };
+        }
+      }]
     },
   },
 
@@ -170,17 +206,16 @@ exports.schema = new Schema({
       inclusive: false,
       attrs: {
         href: {},
-        title: { default: null },
+        id: { default: null },
         class: { defaule: 'hashtag' }
       },
       parseDOM: [{
         tag: 'hashtag[href]',
         getAttrs(dom) {
-          return { href: dom.getAttribute('href'), title: dom.getAttribute('title') };
+          return { href: dom.getAttribute('href'), id: dom.getAttribute('id') };
         },
       }],
       toDOM(node) { return ['hashtag', node.attrs]; },
-
     },
 
     link: {

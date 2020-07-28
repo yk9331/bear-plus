@@ -1,13 +1,17 @@
 /* global app, $:true */
-import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
+import { buildInputRules, buildKeymap, buildMenuItems } from "prosemirror-example-setup";
 import { Step } from "prosemirror-transform";
 import 'prosemirror-replaceattrs';    //Registe replaceAttr Step
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { history } from "prosemirror-history";
 import { collab, receiveTransaction, sendableSteps, getVersion } from "prosemirror-collab";
-import { MenuItem } from "prosemirror-menu";
+import { MenuItem, menuBar} from "prosemirror-menu";
 import { imageUploader } from 'prosemirror-image-uploader';
+import { suggestionsPlugin, triggerCharacter } from "@quartzy/prosemirror-suggestions";
+import { dropCursor } from "prosemirror-dropcursor";
+import { gapCursor } from "prosemirror-gapcursor";
+import { baseKeymap } from "prosemirror-commands";
 
 import { schema } from "./schema";
 import { Reporter } from "./reporter";
@@ -46,6 +50,7 @@ class EditorConnection {
     this.view = null;
     this.editable = editable;
     this.dispatch = this.dispatch.bind(this);
+    this.hashtag = null;
     this.start();
   }
 
@@ -53,10 +58,71 @@ class EditorConnection {
   dispatch(action) {
     let newEditState = null;
     if (action.type == "loaded") {
-      //info.users.textContent = userString(action.users); // FIXME ewww
       let editState = EditorState.create({
         doc: action.doc,
-        plugins: exampleSetup({schema, history: false, menuContent: menu.fullMenu}).concat([
+        plugins: [
+          suggestionsPlugin({
+            debug: false,
+            suggestionClass: 'hashtag',
+            matcher: triggerCharacter("#", { allowSpaces: false }),
+            onEnter({ view, range, text}) {
+              console.log("start", view, range, text);
+              if (text != '#') {
+                view.state.doc.nodesBetween(range.from, range.to, (node, pos, parent, index) => {
+                  if (node.type.name == 'text') {
+                    app.connection.hashtag = node.marks[0].attrs;
+                  }
+                });
+                var transaction = view.state.tr.removeMark(range.from, range.to, schema.marks.hashtag);
+                app.connection.dispatch({ type: "transaction", transaction });
+              }
+              return false;
+            },
+            onChange({ view, range, text}) {
+              console.log("change", view, range, text);
+              return false;
+            },
+            onExit({ view ,range ,text}) {
+              console.log("stop", app.connection.hashtag, view, range, text);
+              // TODO: Add/Remove tag
+              if ( !app.connection.hashtag || (app.connection.hashtag.href !== text && range.to - range.from > 1)) {
+                const data = {
+                  noteId: app.currentNote,
+                  add: text.slice(1),
+                };
+                data.remove = app.connection.hashtag ? app.connection.hashtag.href.slice(1) : null;
+                fetch('/api/1.0/editor/hashtag', {
+                  method: 'POST',
+                  body: JSON.stringify(data),
+                  headers: {
+                    'content-type': 'application/json'
+                  },
+                }).then(res => res.json())
+                  .then(body => {
+                    const attrs = {
+                      href: text,
+                      id:body.id,
+                      class: 'hashtag'
+                    };
+                    var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create(attrs));
+                    app.connection.dispatch({ type: "transaction", transaction });
+                  });
+              } else if (range.to - range.from > 1){
+                var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create(app.connection.hashtag));
+                app.connection.dispatch({ type: "transaction", transaction });
+              }
+              return false;
+            },
+            onKeyDown({ view, event }) {
+              return false;
+            }
+          }),
+          buildInputRules(schema),
+          keymap(buildKeymap(schema, {})),
+          keymap(baseKeymap),
+          dropCursor(),
+          gapCursor(),
+          menuBar({floating: true, content: menu.fullMenu}),
           history({preserveItems: true}),
           collab({version: action.version}),
           commentPlugin,
@@ -81,7 +147,7 @@ class EditorConnection {
               }
             }
           }),
-        ]),
+        ],
         comments: action.comments
       });
       this.state = new State(editState, "poll");
@@ -371,5 +437,16 @@ app.socket.on('collab error', (error) => {
     app.connection.dispatch({type: "restart"});
   } else {
     app.connection.dispatch({type: "recover", error: error});
+  }
+});
+
+$('#menu-btn').click((e) => {
+  console.log($(e.target).attr('opentab'));
+  if ($(e.target).attr('opentab') == undefined || $(e.target).attr('opentab') == 'false') {
+    $(e.target).attr('opentab', 'true');
+    $('.ProseMirror-menubar').css('display', 'flex');
+  } else {
+    $(e.target).attr('opentab', 'false');
+    $('.ProseMirror-menubar').css('display', 'none');
   }
 });

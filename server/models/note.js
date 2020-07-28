@@ -94,6 +94,9 @@ module.exports = (sequelize, DataTypes) => {
       as: 'authors',
       constraints: false
     });
+    Note.belongsToMany(models.Tag, {
+      through: 'NoteTags',
+    });
   };
   return Note;
 };

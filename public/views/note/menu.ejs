@@ -5,6 +5,12 @@
       <div class="user-name"><%= JSON.parse(profile).name %></div>
       <div class="user-id"><%= profileId %></div>
     </div>
+    <div id="types-container">
+      <div id="normal" class="type">
+        <div class="tag-icon material-icons">description</div>
+        <div class="tag-text">Notes</div>
+      </div>
+    </div>
   <% } else { %>
   <div id="types-container">
     <div id="normal" class="type">
@@ -32,14 +38,6 @@
   <% } %>
   <div id="tags-container">
     <div id="tags">
-      <div class="tag">
-        <div class="tag-icon"></div>
-        <div class="tag-text">Tag</div>
-      </div>
-      <div class="tag">
-        <div class="tag-icon"></div>
-        <div class="tag-text">Tag</div>
-      </div>
     </div>
   </div>
   <div id="setting">

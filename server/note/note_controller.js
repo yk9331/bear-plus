@@ -1,4 +1,4 @@
-const { Note, User } = require('../models');
+const { Note, User, Tag } = require('../models');
 const response = require('../response');
 
 const uploadImage = async (req, res) => {
@@ -170,10 +170,28 @@ const getNotes = async (req, res) => {
   const profileId = req.query.profileId.replace('@', '');
   const type = req.query.type || 'normal';
   const permission = req.query.permission;
+  let tag = req.query.tag;
   const userId = req.user ? req.user.userid : null;
   let noteList = null;
   if (profileId == userId) {
-    if (permission != '') {
+    if (tag != '') {
+      noteList = await Note.findAll({
+        where: {
+          state: type,
+          ownerId: req.user.id
+        },
+        order: [
+          ['pinned', 'DESC'],
+          ['updatedAt', 'DESC'],
+        ],
+        include: [{
+          model: Tag,
+          where: {
+            id: tag
+          }
+        }]
+      });
+    } else if (permission != '') {
       noteList = await Note.findAll({
         where: {
           view_permission: permission,
@@ -198,31 +216,115 @@ const getNotes = async (req, res) => {
       });
     }
   } else {
-    noteList = await Note.findAll({
-      where: {
-        view_permission: 'public',
-        state: 'normal'
-      },
-      includes: [{
-        model: User,
+    if (tag != '') {
+      const tagResult = await Tag.findByPk(tag);
+      const userId = await User.findOne({ where: { userid: profileId } });
+      noteList = await tagResult.getNotes({
         where: {
-          userid: profileId,
+          view_permission: 'public',
+          state: 'normal',
+          ownerId: userId.id
+        }
+      });
+    } else {
+      noteList = await Note.findAll({
+        where: {
+          view_permission: 'public',
+          state: 'normal'
+        },
+        includes: [{
+          model: User,
+          where: {
+            userid: profileId,
+          }
+        }, {
+            model: Tag,
+            where: {
+              id: tag
+          }
+        }
+        ],
+        order: [
+          ['pinned', 'DESC'],
+          ['updatedAt', 'DESC'],
+        ],
+      });
+    }
+  }
+  res.json({ noteList });
+};
+
+const getTags = async (req, res) => {
+  const profileId = req.query.profileId.replace('@', '');
+  const userId = req.user ? req.user.userid : null;
+  let tagList = null;
+  if (profileId == userId) {
+    tagList = await Tag.findAll({
+      include: [{
+        model: Note,
+        where: {
+          ownerId: req.user.id,
+          state: 'normal'
         }
       }],
       order: [
-        ['pinned', 'DESC'],
-        ['updatedAt', 'DESC'],
-      ],
+        ['tag', 'ASC']
+      ]
+    });
+  } else {
+    const userId = await User.findOne({ where: { userid: profileId } });
+    tagList = await Tag.findAll({
+      include: [{
+        model: Note,
+        where: {
+          ownerId: userId.id,
+          view_permission: 'public',
+          state: 'normal'
+        }
+      }],
+      order: [
+        ['tag', 'ASC']
+      ]
     });
   }
-  res.json({ noteList });
+  res.json({ tagList });
+};
+
+const updateNoteHashtag = async (req, res) => {
+  const { noteId, add, remove } = req.body;
+  const note = await Note.findOne({ where: { id: noteId } });
+  const [tag, created] = await Tag.findOrCreate({
+    where: {
+      tag: add
+    },
+  });
+  if (remove) {
+    const del = await Tag.findOne({
+      where: {
+        tag: remove
+      }
+    });
+    await note.removeTag(del, { through: 'NoteTags' });
+    const notes = await del.getNotes();
+    if (notes.length == 0) {
+      Tag.destroy({
+        where: {
+          id: del.id
+        }
+      });
+    }
+  }
+  await note.addTag(tag, { through: 'NoteTags' });
+  res.json({ id: tag.id });
 };
 
 module.exports = {
   uploadImage,
   createNewNote,
   getNotes,
+  getTags,
   updateNoteInfo,
   updateNoteUrl,
-  updateNotePermission
+  updateNotePermission,
+  updateNoteHashtag
 };
