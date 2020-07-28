@@ -224,7 +224,11 @@ const getNotes = async (req, res) => {
           view_permission: 'public',
           state: 'normal',
           ownerId: userId.id
-        }
+        },
+        order: [
+          ['pinned', 'DESC'],
+          ['updatedAt', 'DESC'],
+        ],
       });
     } else {
       const userId = await User.findOne({ where: { userid: profileId } });
