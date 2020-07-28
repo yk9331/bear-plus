@@ -33,6 +33,14 @@ body{
   cursor: default;
 }
 
+#page-icon {
+  height: 47px;
+}
+#page-icon img{
+  height: 27px;
+  margin: 10px 12px;
+}
+
 #profile{
   display: flex;
   flex-direction: column;
@@ -67,15 +75,13 @@ body{
   display: flex;
   flex-direction: column;
   justify-content: start;
-  
-}
-
-#types-container{
-  margin-top: 47px;
 }
 
 #tags-container{
   margin-top: 20px;
+  max-height: 650px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #types-container .type,
@@ -137,21 +143,16 @@ body{
   background-color: white;
 }
 
+#setting-btn{
+  cursor: pointer;
+}
+
 #signin-modal-btn{
   width: 100px;
   border: 1px solid #aaa;
   border-radius: 3px;
   margin-right: auto;
   text-align: center;
-}
-
-#setting .info .info-btn{
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid #aaa;
-  text-align: center;
-  margin-left: 10px;
 }
 
 #note-column{
@@ -362,6 +363,7 @@ body{
 #menu-btn{
   font-size: 28px;
 }
+
 #history-btn{
   font-size: 30px;
 }

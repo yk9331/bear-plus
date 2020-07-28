@@ -8,10 +8,10 @@ const { uploadImage, createNewNote, getNotes, getTags, updateNoteInfo, updateNot
 
 // Auth
 router.route('/register')
-  .post(register, emailAuthenticate, signinRedirect);
+  .post(register, emailAuthenticate);
 
 router.route('/signin')
-  .post(emailAuthenticate, signinRedirect);
+  .post(emailAuthenticate);
 
 router.route('/auth/facebook')
   .get(facebookSignin);

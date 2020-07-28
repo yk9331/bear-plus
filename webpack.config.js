@@ -10,10 +10,12 @@ module.exports = {
     font: path.join(__dirname, 'public/css/font.css'),
     emoji: path.join(__dirname, 'public/css/emoji.css'),
     note: [
+      path.join(__dirname, 'public/js/modal.js'),
       path.join(__dirname, 'public/js/index.js'),
       path.join(__dirname, 'public/js/editor.js'),
     ],
     home: [
+      path.join(__dirname, 'public/js/modal.js'),
       path.join(__dirname, 'public/js/home.js'),
     ],
     'note-style': [
@@ -21,10 +23,12 @@ module.exports = {
       path.join(__dirname, 'public/css/codeMirrorEditorEmbeded.css'),
       path.join(__dirname, 'public/css/proseMirror.css'),
       path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
+      path.join(__dirname, 'public/css/modal.css'),
       path.join(__dirname, 'public/css/note.css'),
     ],
     'home-style': [
       path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
+      path.join(__dirname, 'public/css/modal.css'),
       path.join(__dirname, 'public/css/home.css'),
     ]
   },

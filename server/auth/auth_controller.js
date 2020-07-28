@@ -6,7 +6,6 @@ const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const { NODE_ENV, SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = process.env;
 const { User } = require('../models');
-const response = require('../response');
 const serverULR = NODE_ENV === 'development' ? '' : SERVER_URL;
 
 const setReturnToFromReferer = function setReturnToFromReferer(req) {
@@ -79,7 +78,7 @@ passport.deserializeUser(function (id, done) {
 passport.use(new LocalStrategy({
   usernameField: 'email'
 }, async function (email, password, done) {
-  if (!validator.isEmail(email)) return done(null, false);
+  if (!validator.isEmail(email)) return done(null, false, 'Email formate not correct.');
   try {
     const user = await User.findOne({
       where: {
@@ -87,8 +86,8 @@ passport.use(new LocalStrategy({
       }
     });
 
-    if (!user) return done(null, false);
-    if (!await user.verifyPassword(password)) return done(null, false);
+    if (!user) return done(null, false, 'Email not found, please try to sign up.');
+    if (!await user.verifyPassword(password)) return done(null, false, 'Wrong password, please try again');
     return done(null, user);
   } catch (err) {
     return done(err);
@@ -103,8 +102,10 @@ passport.use(new FacebookStrategy({
 
 async function register(req, res, next) {
   console.log(req.body);
-  if (!req.body.email || !req.body.password || !req.body.userId || !req.body.username ) return response.errorBadRequest(req, res);
-  if (!validator.isEmail(req.body.email)) return response.errorBadRequest(req, res);
+  if (!req.body.email || !req.body.password || !req.body.username) {
+    return res.json({ error: 'Username, email and password are required.' });
+  }
+  if (!validator.isEmail(req.body.email)) return res.json({error: 'Email formate not correct.'});
   const profile = {
     username: req.body.username
   };
@@ -120,29 +121,29 @@ async function register(req, res, next) {
     });
 
     if (!user) {
-      req.flash('error', 'Failed to register your account, please try again.');
-      return res.redirect('/');
+      return res.json({ error: 'System error, please try again later.' });
     }
-
     if (created) {
-      req.flash('info', 'You\'ve successfully registered, please signin.');
       return next();
     } else {
-      req.flash('error', 'This email has been used, please try another one.');
-      return res.redirect(`/`);
+      return res.json({ error: 'This email has been used, please try another one.' });
     }
   } catch (err) {
     console.log(err);
-    return response.errorInternalError(req, res);
+    return res.json({ error: 'System error, please try again later.' });
   }
 }
 
 function emailAuthenticate(req, res, next) {
-  if (!req.body.email || !req.body.password) return response.errorBadRequest(req, res);
-  if (!validator.isEmail(req.body.email)) return response.errorBadRequest(req, res);
-  passport.authenticate('local', {
-    failureRedirect: '/',
-    failureFlash: 'Invalid email or password.'
+  if (!req.body.email || !req.body.password) return res.json({error: 'Email and password are required.'});
+  if (!validator.isEmail(req.body.email)) return res.json({error: 'Email formate not correct.'});
+  passport.authenticate('local',function(err, user, info) {
+    if (err) return res.json({ error: 'System error, please try again later.' });
+    if (!user) return res.json({ error: info });
+    req.logIn(user, function(err) {
+      if (err) { return res.json({ error: 'System error, please try again later.' });}
+      return res.json({ userId: user.userid });
+    });
   })(req, res, next);
 }
 

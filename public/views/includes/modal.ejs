@@ -1,0 +1,138 @@
+<!-- Sign in modal -->
+<div class="modal fade" id="sign-in-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Sign in</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="signin-form">
+          <p><small id="signin-help"></small></p>
+          <div class="form-group">
+            <label for="signin-email">Email</label>
+            <input type="email" class="form-control" id="signin-email" name="email" aria-describedby="emailHelp" placeholder="Enter email" required>
+          </div>
+          <div class="form-group">
+            <label for="signin-password">Password</label>
+            <input type="password" class="form-control" id="signin-password" name="password" placeholder="Password" required>
+          </div>
+          <div class="text-center">
+            <button id="signin-submit" class="btn btn-primary">Sign in</button>
+          </div>
+        </form>
+      </div>
+      <div class="form-group">
+        <p class="text-center">Don't have account? <a href="#" data-toggle="modal" data-target="#sign-up-modal" data-dismiss="modal">Sign up here</a></p>
+      </div>
+      <div class="modal-footer justify-content-center flex-column">
+        <h5 class="text-center">or</h5>
+        <div class="form-group d-flex">
+          <a href="/api/1.0/auth/facebook">
+            <button type="button" class="btn btn-primary">Sign in via Facebook</button>
+          </a>
+        </div>
+        
+        <!-- <a href="/api/1.0/auth/google">
+          <button type="button" class="btn btn-light">Sign in via Google</button>
+        </a> -->
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Sign up modal -->
+<div class="modal fade" id="sign-up-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title center">Sign up</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="signup-form">
+          <p><small id="signup-help"></small></p>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="signup-username" name="username" placeholder="Enter username" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-eamil">Email</label>
+            <input type="email" class="form-control" id="signup-email" name="email" aria-describedby="emailHelp" placeholder="Enter email" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" class="form-control" id="signup-password" name="password" placeholder="Password" required>
+          </div>
+          <p class="form-group text-center" ><small >By signing up you accept our Terms Of Use</small></p> 
+          <div class="text-center">
+            <p><button type="submit" class="btn btn-primary text-center">Sign up</button></p>
+          </div>
+          <p class="text-center">Have an account? <a href="#" data-toggle="modal" data-target="#sign-in-modal" data-dismiss="modal">Sign in here</a></p>
+          
+        </form>
+      </div>
+        <div class="modal-footer d-flex justify-content-center flex-column">
+          <h5 class="text-center">or</h3>
+          <a href="/api/1.0/auth/facebook">
+            <button type="button" class="btn btn-primary">Sign in via Facebook</button>
+          </a>
+          <!-- <a href="/api/1.0/auth/google">
+            <button type="button" class="btn btn-light">Sign in via Google</button>
+          </a> -->
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Setting modal -->
+<div class="modal fade" id="setting-modal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title center">Profile Setting</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/api/1.0/register" method="POST" enctype="application/x-www-form-urlencoded">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username">
+          </div>
+          <div class="form-group">
+            <label for="userId">User ID</label>
+            <input type="text" class="form-control" id="userId" name="userId" aria-describedby="userIdHelp" placeholder="Enter user id">
+            <small id="userIdHelp" class="form-text text-muted">Short URL path for your profile. Allow a-Z, 0-9 and dash.</small>
+          </div>
+          <div class="form-group">
+            <label for="signup-eamil">Email</label>
+            <input type="email" class="form-control" id="signup-eamil" name="email" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" class="form-control" id="signup-password" name="password" placeholder="Password">
+          </div>
+          <p class="form-group text-center" ><small >By signing up you accept our Terms Of Use</small></p> 
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary text-center">Sign up</button>
+          </div>
+          <p class="text-center">Have an account? <a href="#" data-toggle="modal" data-target="#sign-in-modal" data-dismiss="modal">Sign in here</a></p>
+          
+        </form>
+      </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <a href="/api/1.0/logout">
+            <button type="button" class="btn btn-outline-danger">Sign out</button>
+          </a>
+          <button type="submit" class="btn btn-primary text-center">Save</button>
+        </div>
+    </div>
+  </div>
+</div>

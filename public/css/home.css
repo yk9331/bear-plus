@@ -12,7 +12,7 @@ body{
 header{
   padding-top: 30px;
   background-color: rgb(47,50,53);
-  height: 600px;
+  height: 550px;
 }
 
 nav{
@@ -95,7 +95,7 @@ header nav img{
   text-align: center;
 }
 
-#popular{
+#demo{
   background-color: rgb(47,50,53);
   padding-top: 0;
 }
