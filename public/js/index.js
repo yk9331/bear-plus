@@ -223,6 +223,7 @@ app.fetchNotes = (type, permission = '', tag = '') => {
   app.currentType = type;
   app.currentPermission = permission;
   app.currentTag = tag;
+  type = tag == '' ? type : 'normal';
   $('.type.current').removeClass('current');
   $('.sub-type.current').removeClass('current');
   $('.tag.current').removeClass('current');
@@ -292,7 +293,10 @@ function createTags(tagList) {
     const icon = $('<div>').addClass('tag-icon material-icons-outlined').text('local_offer');
     const text = $('<div>').addClass('tag-text').text(tagList[i].tag);
     const tag = $('<div>').addClass('tag').attr('id', tagList[i].id).append(icon).append(text);
-    tag.click(() => { app.fetchNotes('normal', '', tagList[i].id); });
+    tag.click(() => {
+      app.currentPermission = '';
+      app.fetchNotes('tag', '', tagList[i].id);
+    });
     $('#tags').append(tag);
   }
 }

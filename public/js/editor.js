@@ -138,6 +138,8 @@ class EditorConnection {
                   .then(res => res.json())
                   .then(body => {
                     return (body.url);
+                  }).catch(e =>{
+                    console.log(e);
                   });
                 return url;
               }
@@ -172,12 +174,10 @@ class EditorConnection {
         if (this.state.comm != "detached") this.report.failure("Document too big. Detached.");
         this.state = new State(newEditState, "detached");
       } else if ((this.state.comm == "poll" || action.requestDone) && (sendable = this.sendable(newEditState))) {
-        this.closeRequest();
         this.state = new State(newEditState, "send");
         this.send(newEditState, sendable);
       } else if (action.requestDone) {
         this.state = new State(newEditState, "poll");
-        this.poll();
       } else {
         this.state = new State(newEditState, this.state.comm);
       }
@@ -244,19 +244,7 @@ class EditorConnection {
     }, this.backOff);
   }
 
-  closeRequest() {
-    if (this.request) {
-      this.request.abort();
-      this.request = null;
-    }
-  }
-
-  run(request) {
-    return this.request = request;
-  }
-
   close() {
-    this.closeRequest();
     this.setView(null);
   }
 
@@ -393,6 +381,7 @@ app.socket.on('collab started', (data) => {
     users: data.users,
     comments: { version: data.commentVersion, comments: data.comments }
   });
+  app.connection.view.focus();
 });
 
 app.socket.on('collab posted', (data) => {
@@ -448,5 +437,11 @@ $('#menu-btn').click((e) => {
   } else {
     $(e.target).attr('opentab', 'false');
     $('.ProseMirror-menubar').css('display', 'none');
+  }
+});
+
+$('#editor').click(() => {
+  if (app.connection.view) {
+    app.connection.view.focus();
   }
 });

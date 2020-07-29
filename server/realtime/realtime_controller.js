@@ -43,7 +43,6 @@ function connection(socket) {
     try {
       const result = await postCollab(data);
       if (result) {
-        console.log('posted');
         realtime.io.to(socket.id).emit('collab posted', result);
         const updates = await getCollab(data);
         socket.to(currentNote).emit('collab updated', updates);
