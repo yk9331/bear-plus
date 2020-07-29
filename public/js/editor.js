@@ -37,9 +37,8 @@ const arrowHandlers = keymap({
 });
 
 class EditorConnection {
-  constructor(report, url, editable) {
+  constructor(report, editable) {
     this.report = report;
-    this.url = url;
     this.state = new State(null, "start");
     this.request = null;
     this.backOff = 0;
@@ -61,7 +60,7 @@ class EditorConnection {
             debug: false,
             suggestionClass: 'hashtag',
             matcher: triggerCharacter("#", { allowSpaces: false }),
-            onEnter({ view, range, text}) {
+            onEnter({ view, range, text }) {
               console.log("start", view, range, text);
               if (text != '#') {
                 view.state.doc.nodesBetween(range.from, range.to, (node, pos, parent, index) => {
@@ -74,14 +73,14 @@ class EditorConnection {
               }
               return false;
             },
-            onChange({ view, range, text}) {
+            onChange({ view, range, text }) {
               console.log("change", view, range, text);
               return false;
             },
-            onExit({ view ,range ,text}) {
+            onExit({ view, range, text }) {
               console.log("stop", app.connection.hashtag, view, range, text);
               // TODO: Add/Remove tag
-              if ( !app.connection.hashtag || (app.connection.hashtag.href !== text && range.to - range.from > 1)) {
+              if (!app.connection.hashtag || (app.connection.hashtag.href !== text && range.to - range.from > 1)) {
                 const data = {
                   noteId: app.currentNote,
                   add: text.slice(1),
@@ -97,13 +96,13 @@ class EditorConnection {
                   .then(body => {
                     const attrs = {
                       href: text,
-                      id:body.id,
+                      id: body.id,
                       class: 'hashtag'
                     };
                     var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create(attrs));
                     app.connection.dispatch({ type: "transaction", transaction });
                   });
-              } else if (range.to - range.from > 1){
+              } else if (range.to - range.from > 1) {
                 var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create(app.connection.hashtag));
                 app.connection.dispatch({ type: "transaction", transaction });
               }
@@ -118,9 +117,9 @@ class EditorConnection {
           keymap(baseKeymap),
           dropCursor(),
           gapCursor(),
-          menuBar({floating: true, content: menu.fullMenu}),
-          history({preserveItems: true}),
-          collab({version: action.version}),
+          menuBar({ floating: true, content: menu.fullMenu }),
+          history({ preserveItems: true }),
+          collab({ version: action.version }),
           commentPlugin,
           commentUI(transaction => this.dispatch({ type: "transaction", transaction })),
           arrowHandlers,
@@ -138,7 +137,7 @@ class EditorConnection {
                   .then(res => res.json())
                   .then(body => {
                     return (body.url);
-                  }).catch(e =>{
+                  }).catch(e => {
                     console.log(e);
                   });
                 return url;
@@ -148,36 +147,23 @@ class EditorConnection {
         ],
         comments: action.comments
       });
-      this.state = new State(editState, "poll");
-      this.poll();
+      this.state = new State(editState, "wait");
+    } else if (action.type == 'wait') {
+      this.state = new State(this.state.edit, "wait");
     } else if (action.type == "restart") {
       this.state = new State(null, "start");
       this.start();
-    } else if (action.type == "poll") {
-      this.state = new State(this.state.edit, "poll");
-      this.poll();
-    } else if (action.type == "recover") {
-      if (action.error.status && action.error.status < 500) {
-        this.report.failure(action.error);
-        this.state = new State(null, null);
-      } else {
-        this.state = new State(this.state.edit, "recover");
-        this.recover(action.error);
-      }
     } else if (action.type == "transaction") {
       newEditState = this.state.edit.apply(action.transaction);
     }
 
     if (newEditState) {
       let sendable;
-      if (newEditState.doc.content.size > 40000) {
-        if (this.state.comm != "detached") this.report.failure("Document too big. Detached.");
-        this.state = new State(newEditState, "detached");
-      } else if ((this.state.comm == "poll" || action.requestDone) && (sendable = this.sendable(newEditState))) {
+      if (this.state.comm == "wait" && (sendable = this.sendable(newEditState))) {
         this.state = new State(newEditState, "send");
         this.send(newEditState, sendable);
       } else if (action.requestDone) {
-        this.state = new State(newEditState, "poll");
+        this.state = new State(newEditState, "wait");
       } else {
         this.state = new State(newEditState, this.state.comm);
       }
@@ -234,16 +220,6 @@ class EditorConnection {
     });
   }
 
-  // Try to recover from an error
-  recover(err) {
-    let newBackOff = this.backOff ? Math.min(this.backOff * 2, 6e4) : 200;
-    if (newBackOff > 1000 && this.backOff < 1000) this.report.delay(err);
-    this.backOff = newBackOff;
-    setTimeout(() => {
-      if (this.state.comm == "recover") this.dispatch({type: "poll"});
-    }, this.backOff);
-  }
-
   close() {
     this.setView(null);
   }
@@ -274,7 +250,7 @@ app.newEditor = function (noteId, editable) {
   if (app.connection) app.connection.close();
   app.socket.emit('open note', { noteId });
   $('#button-container').css('display', 'block');
-  app.connection = new EditorConnection(report, "/api/1.0/" + noteId, editable);
+  app.connection = new EditorConnection(report, editable);
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
   return true;
@@ -372,33 +348,37 @@ app.socket.on('update note info', (note) => {
 
 app.socket.on('collab started', (data) => {
   console.log('started', data);
-  app.connection.report.success();
-  app.connection.backOff = 0;
-  app.connection.dispatch({
-    type: "loaded",
-    doc: schema.nodeFromJSON(data.doc),
-    version: data.version,
-    users: data.users,
-    comments: { version: data.commentVersion, comments: data.comments }
-  });
-  app.connection.view.focus();
+  if (app.connection.state.comm == 'start') {
+    app.connection.report.success();
+    app.connection.backOff = 0;
+    app.connection.dispatch({
+      type: "loaded",
+      doc: schema.nodeFromJSON(data.doc),
+      version: data.version,
+      users: data.users,
+      comments: { version: data.commentVersion, comments: data.comments }
+    });
+    app.connection.view.focus();
+  }
 });
 
 app.socket.on('collab posted', (data) => {
   console.log('posted', data);
-  app.connection.report.success();
-  app.connection.backOff = 0;
-  const { steps, comments } = app.connection.sent;
-  let tr = steps
-      ? receiveTransaction(app.connection.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
-      : app.connection.state.edit.tr;
-  tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: [], sent: comments.length});
-  app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+  if (app.connection.state.comm == 'send') {
+    app.connection.report.success();
+    app.connection.backOff = 0;
+    const { steps, comments } = app.connection.sent;
+    let tr = steps
+        ? receiveTransaction(app.connection.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
+        : app.connection.state.edit.tr;
+    tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: [], sent: comments.length});
+    app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+  }
 });
 
 app.socket.on('collab updated', (data) => {
   console.log('updated', data);
-  if (app.connection.state.comm != 'start' && app.connection.state.comm != null) {
+  if (app.connection.state.comm == 'wait') {
     app.connection.report.success();
     app.connection.backOff = 0;
     if (data.steps && (data.steps.length || data.comment.length)) {
@@ -420,12 +400,12 @@ app.socket.on('collab error', (error) => {
     // The client's document conflicts with the server's version.
     // Poll for changes and then try again.
     app.connection.backOff = 0;
-    app.connection.dispatch({type: "poll"});
+    app.connection.dispatch({type: "wait"});
   } else if (error.status == 410 || badVersion(error)) {
     app.connection.report.failure(error);
     app.connection.dispatch({type: "restart"});
   } else {
-    app.connection.dispatch({type: "recover", error: error});
+    app.connection.dispatch({type: "restart"});
   }
 });
 
