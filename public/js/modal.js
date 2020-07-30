@@ -46,3 +46,11 @@ $('#signup-form').on('submit', (e) => {
       }
     });
 });
+
+$('#setting-btn').click((e) => {
+  fetch('/api/1.0/setting')
+    .then(res => res.json())
+    .then(body => {
+      console.log(body);
+    });
+});

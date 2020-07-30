@@ -8,7 +8,7 @@ import { history } from "prosemirror-history";
 import { collab, receiveTransaction, sendableSteps, getVersion } from "prosemirror-collab";
 import { MenuItem, menuBar} from "prosemirror-menu";
 import { imageUploader } from 'prosemirror-image-uploader';
-import { suggestionsPlugin, triggerCharacter } from "@quartzy/prosemirror-suggestions";
+import { suggestionsPlugin } from "@quartzy/prosemirror-suggestions";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
 import { baseKeymap } from "prosemirror-commands";
@@ -36,6 +36,51 @@ const arrowHandlers = keymap({
   ArrowDown: arrowHandler('down'),
 });
 
+function triggerCharacter(char, _ref) {
+  var _ref$allowSpaces = _ref.allowSpaces,
+      allowSpaces = _ref$allowSpaces === undefined ? false : _ref$allowSpaces;
+
+  /**
+   * @param {ResolvedPos} $position
+   */
+  return function ($position) {
+    // Matching expressions used for later
+    var suffix = new RegExp('\\s' + char + '$');
+    var regexp = allowSpaces ? new RegExp(char + '.*?(?=\\s' + char + '|$)', 'g') : new RegExp('(?:^)?' + char + '[\\w-]+', 'g');
+
+    // Lookup the boundaries of the current node
+    var textFrom = $position.before();
+    var textTo = $position.end();
+
+    var text = $position.doc.textBetween(textFrom, textTo, '\0', '\0');
+
+    var match = void 0;
+
+    while (match = regexp.exec(text)) {
+      // Javascript doesn't have lookbehinds; this hacks a check that first character is " " or the line beginning
+      var prefix = match.input.slice(Math.max(0, match.index - 1), match.index);
+      if (!/^[\s\0]?$/.test(prefix)) {
+        continue;
+      }
+
+      // The absolute position of the match in the document
+      var from = match.index + $position.start();
+      var to = from + match[0].length;
+
+      // Edge case handling; if spaces are allowed and we're directly in between two triggers
+      if (allowSpaces && suffix.test(text.slice(to - 1, to + 1))) {
+        match[0] += ' ';
+        to++;
+      }
+
+      // If the $position is located within the matched substring, return that range
+      if (from < $position.pos && to >= $position.pos) {
+        return { range: { from: from, to: to }, text: match[0] };
+      }
+    }
+  };
+}
+
 class EditorConnection {
   constructor(report, url, editable) {
     this.report = report;
@@ -46,7 +91,6 @@ class EditorConnection {
     this.view = null;
     this.editable = editable;
     this.dispatch = this.dispatch.bind(this);
-    this.hashtag = null;
     this.start();
   }
 
@@ -62,51 +106,13 @@ class EditorConnection {
             suggestionClass: 'hashtag',
             matcher: triggerCharacter("#", { allowSpaces: false }),
             onEnter({ view, range, text}) {
-              console.log("start", view, range, text);
-              if (text != '#') {
-                view.state.doc.nodesBetween(range.from, range.to, (node, pos, parent, index) => {
-                  if (node.type.name == 'text') {
-                    app.connection.hashtag = node.marks[0].attrs;
-                  }
-                });
-                var transaction = view.state.tr.removeMark(range.from, range.to, schema.marks.hashtag);
-                app.connection.dispatch({ type: "transaction", transaction });
-              }
-              return false;
-            },
-            onChange({ view, range, text}) {
-              console.log("change", view, range, text);
+              var transaction = view.state.tr.removeMark(range.from, range.to, schema.marks.hashtag);
+              app.connection.dispatch({ type: "transaction", transaction });
               return false;
             },
             onExit({ view ,range ,text}) {
-              console.log("stop", app.connection.hashtag, view, range, text);
-              // TODO: Add/Remove tag
-              if ( !app.connection.hashtag || (app.connection.hashtag.href !== text && range.to - range.from > 1)) {
-                const data = {
-                  noteId: app.currentNote,
-                  add: text.slice(1),
-                };
-                data.remove = app.connection.hashtag ? app.connection.hashtag.href.slice(1) : null;
-                fetch('/api/1.0/editor/hashtag', {
-                  method: 'POST',
-                  body: JSON.stringify(data),
-                  headers: {
-                    'content-type': 'application/json'
-                  },
-                }).then(res => res.json())
-                  .then(body => {
-                    const attrs = {
-                      href: text,
-                      id:body.id,
-                      class: 'hashtag'
-                    };
-                    var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create(attrs));
-                    app.connection.dispatch({ type: "transaction", transaction });
-                  });
-              } else if (range.to - range.from > 1){
-                var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create(app.connection.hashtag));
-                app.connection.dispatch({ type: "transaction", transaction });
-              }
+              var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create({href:text}));
+              app.connection.dispatch({ type: "transaction", transaction });
               return false;
             },
             onKeyDown({ view, event }) {
@@ -385,14 +391,16 @@ app.socket.on('collab started', (data) => {
 
 app.socket.on('collab posted', (data) => {
   console.log('posted', data);
-  app.connection.report.success();
-  app.connection.backOff = 0;
-  const { steps, comments } = app.connection.sent;
-  let tr = steps
+  if (app.connection.state.comm == 'send') {
+    app.connection.report.success();
+    app.connection.backOff = 0;
+    const { steps, comments } = app.connection.sent;
+    let tr = steps
       ? receiveTransaction(app.connection.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
       : app.connection.state.edit.tr;
-  tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: [], sent: comments.length});
-  app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+    tr.setMeta(commentPlugin, { type: "receive", version: data.commentVersion, events: [], sent: comments.length });
+    app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+  }
 });
 
 app.socket.on('collab updated', (data) => {

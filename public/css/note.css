@@ -61,6 +61,9 @@ body{
   font-size: 18px;
   line-height: 24px;
   margin-top: 10px;
+  max-width: 30%;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #profile .user-id{
@@ -133,6 +136,7 @@ body{
   display: flex;
   align-items: center;
   margin-right: auto;
+  overflow: hidden;
 }
 
 #setting .user-wrapper .user-icon{
@@ -141,6 +145,12 @@ body{
   border-radius: 50%;
   margin-right: 10px;
   background-color: white;
+}
+
+#setting .user-wrapper .user-name{
+  max-width: 60%;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #setting-btn{

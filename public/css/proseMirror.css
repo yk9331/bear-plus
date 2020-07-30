@@ -30,7 +30,7 @@
  text-decoration: line-through;
 }
 
-.ProseMirror hashtag.hashtag{
+.ProseMirror hashtag{
   display: inline-block;
   color: white;
   background-color: #aaa;

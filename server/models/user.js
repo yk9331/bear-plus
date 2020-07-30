@@ -124,8 +124,8 @@ module.exports = (sequelize, DataTypes) => {
     const profile = JSON.parse(user.profile);
     return {
       name: profile.username,
-      photo: '/img/default-user-avatar.png', //generateAvatarURL('', email, false),
-      biggerphoto: '/img/default-user-avatar.png', //generateAvatarURL('', email, true)
+      photo: profile.photo || '/img/default-user-avatar.png', //generateAvatarURL('', email, false),
+      biggerphoto: profile.photo || '/img/default-user-avatar.png', //generateAvatarURL('', email, true)
     };
   };
   return User;

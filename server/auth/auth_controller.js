@@ -107,7 +107,7 @@ async function register(req, res, next) {
   }
   if (!validator.isEmail(req.body.email)) return res.json({error: 'Email formate not correct.'});
   const profile = {
-    username: req.body.username
+    username: encodeURIComponent(req.body.username)
   };
   try {
     const [user, created] = await User.findOrCreate({

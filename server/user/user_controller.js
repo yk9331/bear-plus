@@ -39,6 +39,37 @@ const renderUserPage = async (req, res, next) => {
   });
 };
 
+const getUserSetting = (req, res) => {
+  if (!req.isAuthenticated()) {
+    return response.errorForbidden(req, res);
+  }
+  if (req.user.profileid) {
+    res.json({
+      provider: 'facebook',
+      userId: req.user.userid,
+      profile: User.getProfile(req.user),
+    });
+  } else {
+    res.json({
+      provider: 'native',
+      userId: req.user.userid,
+      profile: User.getProfile(req.user),
+      email: req.user.email
+    });
+  }
+};
+
+const updateUserSetting = (req, res) => {
+  
+};
+
+const updateUserPassword = (req, res) => {
+  
+};
+
 module.exports = {
   renderUserPage,
+  getUserSetting,
+  updateUserSetting,
+  updateUserPassword
 };

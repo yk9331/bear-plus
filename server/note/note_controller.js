@@ -1,5 +1,6 @@
 const { Note, User, Tag } = require('../models');
 const response = require('../response');
+const _ = require('lodash');
 
 const uploadImage = async (req, res) => {
   const url = req.files.image[0].location;
@@ -284,32 +285,49 @@ const getTags = async (req, res) => {
   res.json({ tagList });
 };
 
-const updateNoteHashtag = async (req, res) => {
-  const { noteId, add, remove } = req.body;
-  const note = await Note.findOne({ where: { id: noteId } });
-  const [tag, created] = await Tag.findOrCreate({
-    where: {
-      tag: add
-    },
-  });
-  if (remove) {
-    const del = await Tag.findOne({
-      where: {
-        tag: remove
-      }
-    });
-    await note.removeTag(del, { through: 'NoteTags' });
-    const notes = await del.getNotes();
-    if (notes.length == 0) {
-      Tag.destroy({
+const saveNote = async (id, doc, comments, cb) => {
+  try {
+    if (doc) {
+      const title = doc.firstChild.textContent != '' ? doc.firstChild.textContent : null;
+      const brief = doc.textContent != '' ? doc.textContent.slice(doc.firstChild.textContent.length, 200) : null;
+      const regexp = new RegExp('(?:^)?#[\\w-]+', 'g');
+      const match = doc.toString().match(regexp);
+      const tags = match ? _.uniq(match.map(t => t.slice(1))) : [];
+      console.log(title, brief, tags);
+      await updateNoteTags(id, tags);
+      await Note.update({
+        title,
+        brief,
+        doc: JSON.stringify(doc.toJSON()),
+        comment: JSON.stringify({ data: comments.comments }),
+        savedAt: Date.now()
+      }, {
         where: {
-          id: del.id
+          id
         }
       });
+      const note = await Note.findByPk(id);
+      return true;
     }
+  } catch (e) {
+    console.log(e);
+    return false;
   }
-  await note.addTag(tag, { through: 'NoteTags' });
-  res.json({ id: tag.id });
+};
+
+const updateNoteTags = async (id, tags) => {
+  const note = await Note.findOne({ where: { id } });
+  const newList = [];
+  for (let t of tags) {
+    const [tag, created] = await Tag.findOrCreate({ where: { tag: t } });
+    newList.push(tag);
+  }
+  const oldList = await note.getTags();
+  const del = _.differenceBy(oldList, newList, 'id');
+  const add = _.differenceBy(newList, oldList, 'id');
+  if (del != []) await note.removeTags(del);
+  if (add != []) await note.addTags(add);
+  return newList;
 };
 
 module.exports = {
@@ -320,5 +338,5 @@ module.exports = {
   updateNoteInfo,
   updateNoteUrl,
   updateNotePermission,
-  updateNoteHashtag
+  saveNote,
 };

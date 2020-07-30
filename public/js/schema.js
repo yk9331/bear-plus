@@ -33,6 +33,7 @@ exports.schema = new Schema({
       content: 'inline*',
       group: 'block',
       defining: true,
+      marks: '',
       parseDOM: [
         { tag: 'h1', attrs: { level: 1 } },
         { tag: 'h2', attrs: { level: 2 } },
@@ -204,15 +205,14 @@ exports.schema = new Schema({
 
     hashtag: {
       inclusive: false,
+      excludes: '',
       attrs: {
         href: {},
-        id: { default: null },
-        class: { defaule: 'hashtag' }
       },
       parseDOM: [{
         tag: 'hashtag[href]',
         getAttrs(dom) {
-          return { href: dom.getAttribute('href'), id: dom.getAttribute('id') };
+          return { href: dom.getAttribute('href') };
         },
       }],
       toDOM(node) { return ['hashtag', node.attrs]; },

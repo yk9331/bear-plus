@@ -1,10 +1,13 @@
 const { Step } = require("prosemirror-transform");
 require('prosemirror-replaceattrs');
+
 const { schema } = require("../../public/js/schema");
 const { Mapping } = require("prosemirror-transform");
 const { Comments, Comment } = require("./comments");
 
 const { Note } = require('../models');
+const { saveNote } = require('../note/note_controller');
+const realtime = require('../realtime/realtime_controller');
 
 const MAX_STEP_HISTORY = 10000;
 const instances = Object.create(null);
@@ -51,7 +54,7 @@ class Instance {
       else
         this.comments.created(event);
     }
-
+    this.saved = false;
     this.scheduleSave();
     return {version: this.version, commentVersion: this.comments.version};
   }
@@ -86,35 +89,13 @@ class Instance {
     this.saveTimeout = setTimeout(this.doSave.bind(this), saveEvery);
   }
 
-  doSave() {
+  async doSave() {
     this.saveTimeout = null;
-    const title = (this.doc && this.doc.toJSON().content[0].content) ? this.doc.toJSON().content[0].content.reduce((acc, cur) => acc + cur.text, '') : null;
-    let text = '';
-    try {
-      if (this.doc) {
-        const d = this.doc.toJSON().content;
-        for (let i = 1; i < d.length; i++){
-          if (d[i].content) {
-            text += d[i].content.reduce((acc, cur) => acc + cur.text, '');
-            if (text.length > 200) break;
-          }
-        }
-      }
-    } catch (e) {
-      console.log(e);
+    const saved = await saveNote(this.id, this.doc, this.comments);
+    if (saved) {
+      const note = await Note.findByPk(this.id);
+      this.io.to(this.id).emit('update note info', note);
     }
-    const brief = text == '' ? null : text;
-    Note.update({
-      title,
-      brief,
-      doc: JSON.stringify(this.doc.toJSON()),
-      comment: JSON.stringify({ data: this.comments.comments }),
-      savedAt: Date.now()
-    }, {
-      where: {
-        id: this.id
-      }
-    });
   }
 }
 
