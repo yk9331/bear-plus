@@ -2,10 +2,12 @@ const router = require('express').Router();
 const { upload } = require('../util');
 const s3Upload = upload('');
 const noteImageUpload = s3Upload.fields([{ name: 'image', maxCount: 1 }]);
+const avatarS3Upload = upload('avatar/');
+const avatarImageUpload = avatarS3Upload.fields([{ name: 'avatar', maxCount: 1 }]);
 
 const { register, emailAuthenticate, facebookSignin, facebookCallback, googleSignin, googleCallback, signinRedirect } = require('../auth/auth_controller');
 const { uploadImage, createNewNote, getNotes, getTags, updateNoteInfo, updateNoteUrl, updateNotePermission} = require('../note/note_controller');
-const { getUserSetting, updateUserSetting } = require('../user/user_controller');
+const { getUserSetting, updateUserSetting, updateUserPassword ,updateUserAvatar } = require('../user/user_controller');
 
 // Auth
 router.route('/register')
@@ -31,9 +33,18 @@ router.route('/logout')
     req.logOut();
     res.redirect('/');
   });
-router.route('/setting')
+
+
+// User Setting
+router.route('/user/setting')
   .get(getUserSetting)
   .post(updateUserSetting);
+
+router.route('/user/password')
+  .post(updateUserPassword);
+
+router.route('/user/avatar')
+  .post(avatarImageUpload, updateUserAvatar);
 
 // Notes
 router.route('/notes')
@@ -59,6 +70,5 @@ router.route('/note/:action')
 // Editor
 router.route('/editor/image')
   .post(noteImageUpload, uploadImage);
-
 
 module.exports = router;

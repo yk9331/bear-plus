@@ -116,6 +116,8 @@ module.exports = (sequelize, DataTypes) => {
         if (bigger) photo = photo.replace(/(\?sz=)\d*$/i, '$1400');
         else photo = photo.replace(/(\?sz=)\d*$/i, '$196');
         break;
+      case 'updated':
+        photo = profile.photo;
     }
     return photo;
   };

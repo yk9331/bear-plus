@@ -101,31 +101,52 @@
         </button>
       </div>
       <div class="modal-body">
-        <form action="/api/1.0/register" method="POST" enctype="application/x-www-form-urlencoded">
-          <div class="form-group">
-            <label for="username">Name</label>
-            <input type="text" class="form-control" id="username" name="username">
+        <div class="d-flex">
+          <div class="flex-grow-1">
+            <div class="form-group">
+              <label for="usernurl">Profile Url</label>
+              <input type="text" class="form-control" id="setting-userurl" name="userurl">
+              <small id="userurlHelp" class="form-text text-muted">Short URL path for your profile. Allow a-Z, 0-9 and dash.</small>
+            </div>
+            <div class="form-group" id="email-group">
+              <label for="signup-eamil">Email</label>
+              <input type="email" class="form-control" id="setting-email" name="email" aria-describedby="emailHelp">
+              <small id="emailHelp" class="form-text text-muted"></small>
+            </div>
+            <div class="form-group" id="username-group">              
+              <label for="username">Name</label>
+              <input type="text" class="form-control" id="setting-username" name="username">
+            </div>
+            <div class="form-group" id="password-group">
+              <label>Password</label>
+              <div><button id="change-password" class="btn btn-outline-secondary text-center">Change Password</button></div>
+              <small id="password-msg" class="form-text"></small>
+              <form id="password-form">
+                <input type="password" class="form-control" id="curr-password" name="password" placeholder="Current password" required>
+                <input type="password" class="form-control" id="new-password" name="password" placeholder="New password" required>
+                <input type="password" class="form-control" id="confirm-password" name="password" placeholder="Confirm new password" required>
+                <small id="passwordHelp" class="form-text text-muted"></small>
+                <button id="password-save" type="submit" class="btn btn-outline-secondary text-center">Submit</button>
+              </form>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="usernurl">Profile Url</label>
-            <input type="text" class="form-control" id="userurl" name="userurl">
-            <small id="userurlHelp" class="form-text text-muted">Short URL path for your profile. Allow a-Z, 0-9 and dash.</small>
+          <div class="photo-wrapper">
+            <img id="setting-avatar">
+            <div class="input-group">
+              <label class="btn btn-outline-secondary btn-sm" id="photo-upload">Choose photo
+                <input type="file" class="custom-file-input" id="photo-input" style="display: none;" accept=".png, .jpg, .jpeg">
+              </label>
+              <small id="avatareHelp" class="form-text text-muted"></small>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="signup-eamil">Email</label>
-            <input type="email" class="form-control" id="signup-eamil" name="email" aria-describedby="emailHelp">
-          </div>
-          <div class="form-group">
-            <button type="submit" class="btn btn-primary text-center">Change Password</button>
-          </div>
-        </form>
-      </div>
-        <div class="modal-footer d-flex justify-content-between">
-          <a href="/api/1.0/logout">
-            <button type="button" class="btn btn-outline-danger">Sign out</button>
-          </a>
-          <button type="submit" class="btn btn-primary text-center">Save</button>
         </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <a href="/api/1.0/logout">
+          <button type="button" class="btn btn-outline-danger">Sign out</button>
+        </a>
+        <button id="setting-save" type="submit" class="btn btn-primary text-center">Save</button>
+      </div>
     </div>
   </div>
 </div>

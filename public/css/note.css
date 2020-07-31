@@ -54,7 +54,6 @@ body{
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background-color: white ;
 }
 
 #profile .user-name{
@@ -144,7 +143,6 @@ body{
   width: 32px;
   border-radius: 50%;
   margin-right: 10px;
-  background-color: white;
 }
 
 #setting .user-wrapper .user-name{

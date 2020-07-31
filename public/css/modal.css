@@ -3,3 +3,45 @@
   color: rgb(205, 86 ,84);
   display: none;
 }
+
+.photo-wrapper{
+  width: 140px;
+  padding-left: 20px;
+}
+
+#photo-upload{
+  width: 120px;
+  margin-top: 10px;
+  margin-right: 0;
+}
+
+#setting-avatar{
+  width: 120px;
+}
+
+#setting-modal .error{
+  color: rgb(205, 86 ,84);
+}
+
+#avatareHelp{
+  width: 120px;
+  word-wrap: break-word;
+}
+#password-msg{
+  color: #28A745;
+}
+
+#password-form{
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+#password-form input,
+#password-form button{
+  margin-top: 10px;
+}
+
+#password-form input:first-child{
+  margin-top: 0px;
+}

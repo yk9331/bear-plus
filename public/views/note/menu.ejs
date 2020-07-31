@@ -3,7 +3,7 @@
   <%if (JSON.parse(profile) !== null && profileId !== userId) { %>
     <div id="profile">
       <img class="user-icon" src="<%= JSON.parse(profile).biggerphoto %>"></img>
-      <div class="user-name"><%= JSON.parse(profile).name %></div>
+      <div class="user-name"><%= decodeURIComponent(JSON.parse(profile).name) %></div>
       <div class="user-id"><%= profileId %></div>
     </div>
     <div id="types-container">
@@ -47,7 +47,7 @@
         <a href="/<%= userId %>">
           <img class="user-icon" src="<%= JSON.parse(userProfile).photo %>"></img>
         </a>
-        <div class="user-name"><%= JSON.parse(userProfile).name %></div>
+        <div class="user-name"><%= decodeURIComponent(JSON.parse(userProfile).name) %></div>
       </div>
     <% } else{ %>
       <button type="button" id="signin-modal-btn" class="btn btn-outline-light" data-toggle="modal" data-target="#sign-in-modal">Sign in</button> 

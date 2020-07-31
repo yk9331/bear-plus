@@ -30,7 +30,7 @@ const passportGeneralCallback = function callback (accessToken, refreshToken, pr
     const [user, created] = result;
     if (user) {
       var needSave = false;
-      if (user.profile !== stringifiedProfile) {
+      if ( user.profile.provider != 'updated' && user.profile !== stringifiedProfile) {
         user.profile = stringifiedProfile;
         needSave = true;
       }
