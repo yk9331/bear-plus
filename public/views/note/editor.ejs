@@ -1,6 +1,47 @@
 <div id="editor-container">
   <div id="button-container">
-    <div id="info-btn" class="icon material-icons-outlined">info</div>
+    <div class="btn-group dropleft">
+      <div id="info-btn" type="button" class="icon material-icons-outlined" data-toggle="dropdown" data-offset="10, 10, 0, 0" aria-haspopup="true" aria-expanded="false">info</div>
+      <ul id="info-panel" class="dropdown-menu dropdown-menu-left">
+        <li id="saved-at" class="dropdown-item-text d-flex justify-content-start align-items-center">
+          <div class="date"></div>
+          <div class="right">
+            <div class="time"></div>
+            <div class="text">LAST SAVED DATE</div>
+          </div>
+        </li>
+        <li><div class="line"></div></li>
+        <li id="counts" class="dropdown-item-text d-flex justify-content-center align-items-center flex-wrap">
+          <div id="words" class="count-tab flex-grow-1">
+            <div class="count">176</div>
+            <div class="text">WORDS</div>
+          </div>
+          <div id="characters" class="count-tab flex-grow-1">
+            <div class="count">1500</div>
+            <div class="text">CHARACTERS</div>
+          </div>
+          <div id="readtime" class="count-tab flex-grow-1">
+            <div class="count">45s</div>
+            <div class="text">READ TIME</div>
+          </div>
+          <div id="paragraphs" class="count-tab flex-grow-1">
+            <div class="count">31</div>
+            <div class="text">PARAGRAPHS</div>
+          </div>
+        </li>
+        <li><div class="line"></div></li>
+        <li id="collab-data" class="dropdown-item-text d-flex flex-column justify-content-start">
+          <div class="count"></div>
+          <div class="text">ONLINE USERS</div>
+          <div class="user"></div>
+          <div class="text">LAST CHANGE USER</div>
+        </li>
+        <li><div class="line"></div></li>
+        <li id="created-at" class="dropdown-item-text d-flex flex-column justify-content-start ">
+            <div class="time"></div>
+            <div class="text">CREATION DATE</div>
+        </li>
+    </div>
     <div class="btn-group dropleft">
       <div id="share-btn" type="button" class="icon material-icons-outlined" data-toggle="dropdown" data-offset="10, 10, 0, 0" aria-haspopup="true" aria-expanded="false">
         share
@@ -54,16 +95,6 @@
     </div>
     <div id="history-btn" class="icon material-icons-outlined">history</div>
     <div id="menu-btn" class="icon material-icons-outlined">palette</div>
-  </div>
-  
-  <div id="editor-tool">
-    <button id="view-source-btn">View Source</button>
-    <form id="commit">
-      Commit message: 
-      <input type=text id=message name=message> 
-      <button id=commitbutton type="submit">commit</button>
-    </form>
-    <div id="commits" style="margin-bottom: 23px"></div>
   </div>
   <div id="editor" style="margin-bottom: 0"></div>
   <div style="display: none">

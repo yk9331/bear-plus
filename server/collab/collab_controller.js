@@ -7,7 +7,6 @@ const { Comments, Comment } = require("./comments");
 
 const { Note } = require('../models');
 const { saveNote } = require('../note/note_controller');
-const realtime = require('../realtime/realtime_controller');
 
 const MAX_STEP_HISTORY = 10000;
 const instances = Object.create(null);
@@ -24,13 +23,15 @@ class Instance {
     this.steps = [];
     this.lastActive = Date.now();
     this.saveTimeout = null;
+    this.users = {};
   }
 
   stop() {
-    // stop instance
+    // TODO: stop instance on closed
   }
 
   addEvents(version, steps, comments, clientID) {
+    if (!this.users[clientID]) this.users[clientID] = clientID;
     this.checkVersion(version);
     if (this.version != version) return false;
     let doc = this.doc, maps = [];
@@ -54,8 +55,7 @@ class Instance {
       else
         this.comments.created(event);
     }
-    this.saved = false;
-    this.scheduleSave();
+    this.lastActive = Date.now();
     return {version: this.version, commentVersion: this.comments.version};
   }
 
@@ -83,25 +83,10 @@ class Instance {
     return {steps: this.steps.slice(startIndex),
             comment: this.comments.eventsAfter(commentStartIndex)};
   }
-
-  scheduleSave() {
-    if (this.saveTimeout != null) return;
-    this.saveTimeout = setTimeout(this.doSave.bind(this), saveEvery);
-  }
-
-  async doSave() {
-    this.saveTimeout = null;
-    const saved = await saveNote(this.id, this.doc, this.comments);
-    if (saved) {
-      const note = await Note.findByPk(this.id);
-      this.io.to(this.id).emit('update note info', note);
-    }
-  }
 }
 
 async function getInstance(noteId) {
   let inst = instances[noteId] || await newInstance(noteId);
-  inst.lastActive = Date.now();
   return inst;
 }
 
@@ -111,6 +96,24 @@ async function newInstance(id) {
   const comment = note.comment ? JSON.parse(note.comment).data : null;
   const comments = comment ? new Comments(comment.map(c => Comment.fromJSON(c))) : null;
   return instances[id] = new Instance(id, doc, comments);
+}
+
+async function scheduleSave (noteId, cb) {
+  const inst = await getInstance(noteId);
+  if (inst.saveTimeout != null) return;
+  inst.saveTimeout = setTimeout(async () => {
+    try {
+      inst.saveTimeout = null;
+      const lastUser = inst.steps[inst.steps.length - 1].clientID;
+      const authorship = JSON.stringify(inst.users);
+      const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, lastUser, authorship);
+      if (saved) {
+        cb(inst.id);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, saveEvery);
 }
 
 const startCollab = async function (noteId) {
@@ -161,5 +164,6 @@ const postCollab = async function (data) {
 module.exports = {
   startCollab,
   getCollab,
-  postCollab
+  postCollab,
+  scheduleSave
 };

@@ -1,13 +1,10 @@
 'use strict';
 require('dotenv').config();
 const path = require('path');
-// const fs = require('fs');
 
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
-const flash = require('connect-flash');
 const passport = require('passport');
-const passportSocketIo = require('passport.socketio');
 
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -22,23 +19,6 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const port = process.env.PORT;
-
-// Setup Socket
-const io = require('socket.io')(server);
-// io.engine.ws = new (require('ws').Server)({
-//   noServer: true,
-//   perMessageDeflate: false
-// });
-realtime.io = io;
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-app.use('/', express.static(path.join(__dirname, '/public')));
 
 // Setup Session
 var sessionStore = new SequelizeStore({
@@ -56,8 +36,21 @@ app.use(session({
   store: sessionStore
 }));
 
+// Setup Socket
+const io = realtime.initSocket(server, sessionStore);
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Middlewares
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+app.use('/', express.static(path.join(__dirname, '/public')));
+
 // Setup Passport
-app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -85,16 +78,6 @@ app.use((err, req, res, next) => {
   console.log(err);
   response.errorInternalError(req, res);
 });
-
-io.use(passportSocketIo.authorize({
-  cookieParser: cookieParser,
-  key: config.sessionName,
-  secret: config.sessionSecret,
-  store: sessionStore,
-  success: realtime.onAuthorizeSuccess,
-  fail: realtime.onAuthorizeFail
-}));
-io.sockets.on('connection', realtime.connection);
 
 // Server Listen
 models.sequelize.sync().then(function () {

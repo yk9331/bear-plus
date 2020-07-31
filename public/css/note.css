@@ -36,9 +36,10 @@ body{
 #page-icon {
   height: 47px;
 }
+
 #page-icon img{
-  height: 27px;
-  margin: 10px 12px;
+  height: 21px;
+  margin: 13px 12px;
 }
 
 #profile{
@@ -61,7 +62,6 @@ body{
   font-size: 18px;
   line-height: 24px;
   margin-top: 10px;
-  max-width: 30%;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -148,7 +148,6 @@ body{
 }
 
 #setting .user-wrapper .user-name{
-  max-width: 60%;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -375,20 +374,25 @@ body{
 }
 
 #history-btn{
+  display: none;
   font-size: 30px;
 }
 
 #share-panel li{
-  padding: 0 10px;
+  padding: 0 15px;
   display: flex;
   align-items: flex-end;
+}
+
+#info-panel li{
+  padding: 0 15px;
+  width: 200px;
 }
 
 #sharing-status,
 #sharing-msg{
   font-size: 12px;
   line-height: 22px;
-  
 }
 
 #sharing-status{
@@ -423,87 +427,51 @@ body{
   padding: 3px 10px;
 }
 
-
-#info-dashboard,
-#editor-tool{
-  display: none;
-  position: absolute;
-  right: 20px;
-  z-index: 10000;
-  flex-direction: column;
-  text-align: left;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 8px 8px rgba(47,50,53, 0.1);
-  width: 200px;
-  height: 300px;
-  align-items: center;
-  border: 1px solid #ddd;
+#saved-at{
+  margin-top: 4px;
 }
 
-#info-dashboard{
-  top:55px;
+#info-panel .date{
+  font-size: 40px;
+  line-height: 40px;
+  font-weight: 400;
 }
 
-#editor-tool-checkbox:checked ~ #editor-tool {
-  display: flex;
-  position: absolute;
-  flex-direction: column;
-  text-align: left;
-  margin-left: 0;
+#info-panel .right{
+  width: 100px;
+  margin-left: 15px;
+}
+#info-panel .time{
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 400;
+}
+#info-panel .text{
+  font-size: 12px;
+  line-height: 20px;
+  color: #aaa;
 }
 
-#editor-tool{
-  top:95px;
+#info-panel .line{
+  height: 1px;
+  background-color: rgb(222,222,222);
+  margin: 12px 0 8px;
 }
 
-#view-source-btn{
-  display: block;
-  margin-left: 1em;
-  width:80%;
-  height: 50px;
-  z-index: 10000;
-  border:1px solid rgb(47,50,53);
-  border-radius: 5px;
-  margin: 5px;
+#info-panel .count-tab{
+  width: 50%;
+  margin-top: 8px;
 }
 
-.commit {
-  margin-bottom: 4px;
+#info-panel .count{
+  font-size: 18px;
+  line-height: 20px;
+  font-weight: 300;
 }
-.commit:hover {
-  background: #ff8;
-}
-.commit-revert {
-  color:  rgb(205, 86 ,84);
-}
-.commit-time {
-  background: #5ab;
-  padding: 0 5px;
-  color: white;
-  font-size: 90%;
-}
-.commit-blame {
-  background: #ff8;
-}
-.blame-info {
-  position: fixed;
-  border: 1px solid silver;
-  background: white;
-  padding: 3px 8px;
-  z-index: 3;
-}
-.blame-wrap {
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-#commit {
-  margin: 6px 0;
-  position: relative;
-}
-.blame-marker {
-  background: #ff8;
+
+#info-panel #collab-data .count,
+#info-panel .user{
+  margin-top: 8px;
 }
 
 #editor{

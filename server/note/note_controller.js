@@ -285,7 +285,7 @@ const getTags = async (req, res) => {
   res.json({ tagList });
 };
 
-const saveNote = async (id, doc, comments, cb) => {
+const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuser, authorship) => {
   try {
     if (doc) {
       const title = doc.firstChild.textContent != '' ? doc.firstChild.textContent : null;
@@ -293,20 +293,23 @@ const saveNote = async (id, doc, comments, cb) => {
       const regexp = new RegExp('(?:^)?#[\\w-]+', 'g');
       const match = doc.toString().match(regexp);
       const tags = match ? _.uniq(match.map(t => t.slice(1))) : [];
-      console.log(title, brief, tags);
+      const user = await User.findOne({ where: { userid: lastchangeuser.slice(1) } });
+      const lastchangeuserId = user ? user.id : null;
       await updateNoteTags(id, tags);
       await Note.update({
         title,
         brief,
         doc: JSON.stringify(doc.toJSON()),
         comment: JSON.stringify({ data: comments.comments }),
+        lastchangeAt,
+        lastchangeuserId,
+        authorship,
         savedAt: Date.now()
       }, {
         where: {
           id
         }
       });
-      const note = await Note.findByPk(id);
       return true;
     }
   } catch (e) {

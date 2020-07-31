@@ -46,7 +46,6 @@
     "prosemirror-image-uploader": "^1.0.0",
     "prosemirror-keymap": "^1.1.4",
     "prosemirror-markdown": "^1.4.5",
-    "prosemirror-mentions": "^1.0.0",
     "prosemirror-model": "^1.10.0",
     "prosemirror-schema-basic": "^1.1.2",
     "prosemirror-schema-list": "^1.1.2",

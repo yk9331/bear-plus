@@ -19,6 +19,7 @@ import { commentPlugin, commentUI, addAnnotation, annotationIcon } from "./comme
 
 import { CodeBlockView, arrowHandler } from "./codeBlockView";
 import { keymap } from 'prosemirror-keymap';
+const _ = require('lodash');
 
 const report = new Reporter();
 
@@ -62,7 +63,7 @@ function triggerCharacter(char, _ref) {
       if (!/^[\s\0]?$/.test(prefix)) {
         continue;
       }
-
+      if ($position.parent.type.name == 'heading') return;
       // The absolute position of the match in the document
       var from = match.index + $position.start();
       var to = from + match[0].length;
@@ -126,7 +127,7 @@ class EditorConnection {
           gapCursor(),
           menuBar({floating: true, content: menu.fullMenu}),
           history({preserveItems: true}),
-          collab({version: action.version}),
+          collab({version: action.version,clientID:app.userId}),
           commentPlugin,
           commentUI(transaction => this.dispatch({ type: "transaction", transaction })),
           arrowHandlers,
@@ -368,15 +369,46 @@ $('#permission-write').change((e) => {
   }
 });
 
-app.socket.on('update note info', (note) => {
-  console.log(note);
+function setCounts(doc) {
+  const words = _.difference(doc.textBetween(0, doc.content.size, ' ', '').split(' '),['']).length;
+  const readtime = words / 200 < 1 ? (words*60/200).toFixed() + 's': (words / 200).toFixed() + 'm ' + ((words % 200)/200*60).toFixed() + 's';
+  $('#words').children('.count').text(words);
+  $('#characters').children('.count').text(doc.textContent.replace(' ', '').length);
+  $('#readtime').children('.count').text(readtime);
+  let p = 0;
+  doc.forEach((n) => { if (n.textContent != '') p++; });
+  $('#paragraphs').children('.count').text(p);
+}
+
+app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) => {
   $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
   $('#permission-read').val(note.view_permission);
   $('#permission-write').val(note.write_permission);
+  $('.note-tab.current').children('.info').children('.title').text(note.title);
+  $('.note-tab.current').children('.info').children('.brief').text(note.brief);
+  if (note.Tags) {
+    let exist = false;
+    for (let t of note.Tags) {
+      if (t.id == app.currentTag) exist = true;
+    }
+    if (!exist) {
+      app.fetchNotes('normal', '', '');
+    }
+    app.fetchTags();
+  }
+  const savedAt = note.savedAt ? new Date(note.savedAt) : new Date(note.createdAt);
+  const createdAt = new Date(note.createdAt);
+  const saveTime = savedAt.toLocaleString('default', { month: 'short', year: 'numeric' }).toUpperCase() + ' ' + ('0' + savedAt.getHours()).substr(-2) + ':' + ('0' + savedAt.getMinutes()).substr(-2);
+  const createTime = createdAt.toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase() + ' AT ' + ('0' + createdAt.getHours()).substr(-2) + ':' + ('0' + createdAt.getMinutes()).substr(-2);
+  $('#saved-at').children('.date').text(savedAt.getDate());
+  $('#saved-at').children('.right').children('.time').text(saveTime);
+  $('#created-at').children('.time').text(createTime);
+  $('#collab-data').children('.count').text(onlineUserCount);
+  if (lastChangeUser) $('#collab-data').children('.user').text(decodeURIComponent(lastChangeUser.name));
+  if (app.view) setCounts(app.view.state.doc);
 });
 
 app.socket.on('collab started', (data) => {
-  console.log('started', data);
   app.connection.report.success();
   app.connection.backOff = 0;
   app.connection.dispatch({
@@ -387,10 +419,10 @@ app.socket.on('collab started', (data) => {
     comments: { version: data.commentVersion, comments: data.comments }
   });
   app.connection.view.focus();
+  setCounts(app.view.state.doc);
 });
 
 app.socket.on('collab posted', (data) => {
-  console.log('posted', data);
   if (app.connection.state.comm == 'send') {
     app.connection.report.success();
     app.connection.backOff = 0;
@@ -404,7 +436,6 @@ app.socket.on('collab posted', (data) => {
 });
 
 app.socket.on('collab updated', (data) => {
-  console.log('updated', data.version, getVersion(app.connection.state.edit));
   if (app.connection.state.comm == 'poll' && (data.version > getVersion(app.connection.state.edit))) {
     app.connection.report.success();
     app.connection.backOff = 0;
@@ -422,7 +453,6 @@ function badVersion(err) {
 }
 
 app.socket.on('collab error', (error) => {
-  console.log('collab error', error);
   if (error.status == 409) {
     // The client's document conflicts with the server's version.
     // Poll for changes and then try again.
@@ -437,7 +467,6 @@ app.socket.on('collab error', (error) => {
 });
 
 $('#menu-btn').click((e) => {
-  console.log($(e.target).attr('opentab'));
   if ($(e.target).attr('opentab') == undefined || $(e.target).attr('opentab') == 'false') {
     $(e.target).attr('opentab', 'true');
     $('.ProseMirror-menubar').css('display', 'flex');

@@ -289,12 +289,14 @@ $('#private').click(() => {
 function createTags(tagList) {
   $('#tags').empty();
   for (let i = 0; i < tagList.length; i++) {
-    console.log(tagList[i]);
     const icon = $('<div>').addClass('tag-icon material-icons-outlined').text('local_offer');
     const text = $('<div>').addClass('tag-text').text(tagList[i].tag);
     const tag = $('<div>').addClass('tag').attr('id', tagList[i].id).append(icon).append(text);
-    tag.click(() => {
-      app.currentPermission = '';
+    if (app.currentTag == tagList[i].id) tag.addClass('current');
+    tag.click((e) => {
+      const id = $(e.target).attr('id') || $(e.target).parent().attr('id');
+      if (id == app.currentTag) return;
+      $('#new-note').attr('disabled', false);
       app.fetchNotes('tag', '', tagList[i].id);
     });
     $('#tags').append(tag);
