@@ -1,6 +1,7 @@
 const { Note, User, Tag } = require('../models');
 const response = require('../response');
 const _ = require('lodash');
+const { Op } = require("sequelize");
 
 const uploadImage = async (req, res) => {
   const url = req.files.image[0].location;
@@ -200,6 +201,7 @@ const getNotes = async (req, res) => {
   const permission = req.query.permission;
   let tag = req.query.tag;
   const userId = req.user ? req.user.userid : null;
+  const keyword = req.query.keyword || null;
   let noteList = null;
   if (profileId == userId) {
     const whereStament = {
@@ -207,6 +209,7 @@ const getNotes = async (req, res) => {
       state: type,
     };
     if (permission != '') whereStament.view_permission = permission;
+    if (keyword) whereStament.textcontent = { [Op.substring]: keyword };
     if (tag != '') {
       noteList = await Note.findAll({
         where: whereStament,
@@ -231,28 +234,25 @@ const getNotes = async (req, res) => {
       });
     }
   } else {
+    const userId = await User.findOne({ where: { userid: profileId } });
+    const whereStament = {
+      view_permission: 'public',
+      state: 'normal',
+      ownerId: userId.id
+    };
+    if (keyword) whereStament.textcontent = { [Op.substring]: keyword };
     if (tag != '') {
       const tagResult = await Tag.findByPk(tag);
-      const userId = await User.findOne({ where: { userid: profileId } });
       noteList = await tagResult.getNotes({
-        where: {
-          view_permission: 'public',
-          state: 'normal',
-          ownerId: userId.id
-        },
+        where: whereStament,
         order: [
           ['pinned', 'DESC'],
           ['updatedAt', 'DESC'],
         ],
       });
     } else {
-      const userId = await User.findOne({ where: { userid: profileId } });
       noteList = await Note.findAll({
-        where: {
-          view_permission: 'public',
-          state: 'normal',
-          ownerId: userId.id
-        },
+        where: whereStament,
         order: [
           ['pinned', 'DESC'],
           ['updatedAt', 'DESC'],

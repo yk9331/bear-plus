@@ -183,6 +183,7 @@ body{
   padding: 5px;
   display: flex;
   justify-content: stretch;
+  position: relative;
 }
 
 #search-form input{
@@ -190,7 +191,24 @@ body{
   border: 1px solid rgb(222,222,222);
   border-radius: 3px;
   flex-grow: 1;
-  padding: 3px;
+  padding: 3px 10px;
+}
+
+#clear-btn{
+  display: none;
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  cursor: default;
+  font-size: 10px;
+  line-height: 15px;
+  background-color: #aaa;
+  border-radius: 50%;
+  color: white;
+  top: 11px;
+  right: 15px;
+  text-align: center;
+  z-index: 10;
 }
 
 #new-note{

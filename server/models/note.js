@@ -39,6 +39,9 @@ module.exports = (sequelize, DataTypes) => {
     brief: {
       type: DataTypes.TEXT,
     },
+    textcontent: {
+      type: DataTypes.TEXT,
+    },
     doc: {
       type: DataTypes.TEXT('long'),
     },

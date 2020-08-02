@@ -221,7 +221,7 @@ function createNotes(noteList, type) {
   }
 }
 
-app.fetchNotes = (type, permission = '', tag = '') => {
+app.fetchNotes = (type, permission = '', tag = '', search='') => {
   app.currentType = type;
   app.currentPermission = permission;
   app.currentTag = tag;
@@ -237,7 +237,7 @@ app.fetchNotes = (type, permission = '', tag = '') => {
   } else {
     $(`#${type}`).addClass('current');
   }
-  fetch(`/api/1.0/notes?profileId=${app.profileId}&&type=${type}&&permission=${permission}&&tag=${tag}`)
+  fetch(`/api/1.0/notes?profileId=${app.profileId}&&type=${type}&&permission=${permission}&&tag=${tag}&&keyword=${search}`)
     .then(res => res.json())
     .then(({ noteList }) => {
       if (!noteList) return;
@@ -246,6 +246,7 @@ app.fetchNotes = (type, permission = '', tag = '') => {
 };
 
 $('#normal').click((e) => {
+  $('#search-input').val('');
   if (app.profileId !== app.userId) {
     app.fetchNotes('normal');
   } else {
@@ -257,12 +258,14 @@ $('#normal').click((e) => {
 
 $('#archive').click((e) => {
   if (app.currentType == 'archive') return;
+  $('#search-input').val('');
   $('#new-note').attr('disabled', true);
   app.fetchNotes('archive', '', app.currentTag);
 });
 
 $('#trash').click((e) => {
   if (app.currentType == 'trash') return;
+  $('#search-input').val('');
   $('#new-note').attr('disabled', true);
   app.fetchNotes('trash', '', app.currentTag);
 });
@@ -279,14 +282,35 @@ $('#normal-dropdown').click(() => {
 
 $('#public').click(() => {
   if (app.currentType == 'normal' && app.currentPermission == 'public') return;
+  $('#search-input').val('');
   $('#new-note').attr('disabled', false);
   app.fetchNotes('normal', 'public', app.currentTag);
 });
 
 $('#private').click(() => {
   if (app.currentType == 'normal' && app.currentPermission == 'private') return;
+  $('#search-input').val('');
   $('#new-note').attr('disabled', false);
   app.fetchNotes('normal', 'private', app.currentTag);
+});
+
+$('#search-input').on('input', (e) => {
+  if ($('#search-input').val() != '') {
+    $('#clear-btn').css('display', 'block');
+  } else {
+    $('#clear-btn').css('display', 'none');
+  }
+});
+
+$('#clear-btn').click(() => {
+  $('#search-input').val('');
+  $('#clear-btn').css('display', 'none');
+  app.fetchNotes(app.currentType, app.currentPermission, app.currentTag);
+});
+
+$('#search-form').on('submit', (e) => {
+  e.preventDefault();
+  app.fetchNotes(app.currentType, app.currentPermission, app.currentTag, $('#search-input').val());
 });
 
 function createTags(tagList) {
@@ -303,7 +327,6 @@ function createTags(tagList) {
       } else {
         app.fetchNotes(app.currentType, app.currentPermission, tagList[i].id);
       }
-      // $('#new-note').attr('disabled', false);
     });
     $('#tags').append(tag);
   }
@@ -321,9 +344,4 @@ app.fetchTags = () => {
 $(document).ready(() => {
   app.fetchNotes('normal');
   app.fetchTags();
-});
-
-$('#search-form').on('submit', (e) => {
-  e.preventDefault();
-  console.log($('#search-input').val(), 'Type: ' + app.currentType, 'Permission: ' + app.currentPermission, 'Tag: ' + app.currentTag);
 });
