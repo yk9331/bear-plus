@@ -52,7 +52,7 @@ $('#setting-btn').click((e) => {
     .then(res => res.json())
     .then(body => {
       console.log(body);
-      $('#userurlHelp').text('');
+      $('#userurlHelp').text('Short URL path for your profile. Allow a-Z, 0-9 and dash.').removeClass('error').addClass('text-muted');
       $('#emailHelp').text('');
       $('#avatareHelp').text('');
       $('#password-form').css('display', 'none');
