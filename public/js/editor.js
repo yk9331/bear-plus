@@ -1,12 +1,12 @@
 /* global app, $:true */
-import { buildInputRules, buildKeymap, buildMenuItems } from "prosemirror-example-setup";
+import { buildInputRules, buildKeymap } from "prosemirror-example-setup";
 import { Step } from "prosemirror-transform";
 import 'prosemirror-replaceattrs';    //Registe replaceAttr Step
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { history } from "prosemirror-history";
 import { collab, receiveTransaction, sendableSteps, getVersion } from "prosemirror-collab";
-import { MenuItem, menuBar} from "prosemirror-menu";
+import { menuBar} from "prosemirror-menu";
 import { imageUploader } from 'prosemirror-image-uploader';
 import { suggestionsPlugin } from "@quartzy/prosemirror-suggestions";
 import { dropCursor } from "prosemirror-dropcursor";
@@ -15,14 +15,14 @@ import { baseKeymap } from "prosemirror-commands";
 
 import { schema } from "./schema";
 import { Reporter } from "./reporter";
-import { commentPlugin, commentUI, addAnnotation, annotationIcon } from "./comment";
+import { commentPlugin, commentUI} from "./comment";
 
 import { CodeBlockView, arrowHandler } from "./codeBlockView";
 import { keymap } from 'prosemirror-keymap';
 const _ = require('lodash');
-
+import { buildMenuItems } from './menu';
 const report = new Reporter();
-
+let menu = buildMenuItems(schema);
 class State {
   constructor(edit, comm) {
     this.edit = edit;
@@ -82,6 +82,17 @@ function triggerCharacter(char, _ref) {
   };
 }
 
+const insertText = function (text = '') {
+  return (state, dispatch) => {
+    const { $from } = state.selection;
+    const { pos } = $from.pos;
+
+    dispatch(state.tr.insertText(text, pos));
+
+    return true;
+  };
+};
+
 class EditorConnection {
   constructor(report, url, editable) {
     this.report = report;
@@ -94,7 +105,6 @@ class EditorConnection {
     this.dispatch = this.dispatch.bind(this);
     this.start();
   }
-
   // All state changes go through this
   dispatch(action) {
     let newEditState = null;
@@ -123,9 +133,10 @@ class EditorConnection {
           buildInputRules(schema),
           keymap(buildKeymap(schema, {})),
           keymap(baseKeymap),
-          dropCursor(),
+          keymap({Tab: insertText('    ')}),
+          dropCursor({color:'rgb(205, 80, 70)'}),
           gapCursor(),
-          menuBar({floating: true, content: menu.fullMenu}),
+          menuBar({content: menu.fullMenu}),
           history({preserveItems: true}),
           collab({version: action.version,clientID:app.userId}),
           commentPlugin,
@@ -265,16 +276,6 @@ function repeat(val, n) {
   for (let i = 0; i < n; i++) result.push(val);
   return result;
 }
-
-const annotationMenuItem = new MenuItem({
-  title: "Add an annotation",
-  run: addAnnotation,
-  select: state => addAnnotation(state),
-  icon: annotationIcon
-});
-
-let menu = buildMenuItems(schema);
-menu.fullMenu[0].push(annotationMenuItem);
 
 app.newEditor = function (noteId, editable) {
   if (app.connection) app.connection.close();

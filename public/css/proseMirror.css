@@ -1,7 +1,5 @@
-.ProseMirror-menubar-wrapper,
-#markdown textarea { 
+.ProseMirror-menubar-wrapper{ 
   display: block; 
-  margin-bottom: 4px 
  }
 
 .ProseMirror {
@@ -85,13 +83,18 @@ li.ProseMirror-selectednode:after {
 }
 
 .ProseMirror-menuitem {
- margin-right: 3px;
- display: inline-block;
+  display: block;
+  height: 24px;
+  margin: 2px;
+  cursor: default;
 }
 
 .ProseMirror-menuseparator {
- border-right: 1px solid #ddd;
- margin-right: 3px;
+  display: block;
+  height: 1px;
+  width: 24px;
+  border-bottom: 1px solid #ddd;
+  margin: 3px 0;
 }
 
 .ProseMirror-menu-dropdown, .ProseMirror-menu-dropdown-menu {
@@ -192,8 +195,9 @@ li.ProseMirror-selectednode:after {
   position: absolute;
   color: #666;
   padding: 1px 6px;
-  top: 195px; 
+  top: 150px; 
   right: 15px;
+  width: 36px;
   border: 1px solid rgba(0,0,0,.15);
   background: white;
   z-index: 10;
@@ -201,6 +205,8 @@ li.ProseMirror-selectednode:after {
   box-sizing: border-box;
   overflow: visible;
   border-radius: .25rem;
+  align-items: center;
+  font-weight: 500;
 }
 
 .ProseMirror-icon {
@@ -277,6 +283,7 @@ li.ProseMirror-selectednode:after {
 
 .ProseMirror mark{
  padding: 0 8px;
+ background-color: rgb(255, 243, 133);
 }
 
 .ProseMirror blockquote {
@@ -369,7 +376,10 @@ li.ProseMirror-selectednode:after {
  caret-color: rgb(205, 80, 70);
 }
 
-.ProseMirror p { margin-bottom: 1em }
+.ProseMirror p { 
+  margin-bottom: 1em;
+  line-height: 1.6em;
+}
 
 .subtle { color: #777 }
 

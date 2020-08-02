@@ -1,6 +1,7 @@
 import crel from "crelt";
-import {Plugin} from "prosemirror-state";
-import {Decoration, DecorationSet} from "prosemirror-view";
+import { Plugin } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { TextField, openPrompt } from "./prompt";
 
 class Comment {
   constructor(text, id) {
@@ -104,9 +105,22 @@ export const addAnnotation = function(state, dispatch) {
   let sel = state.selection;
   if (sel.empty) return false;
   if (dispatch) {
-    let text = prompt("Annotation text", "");
-    if (text)
-      dispatch(state.tr.setMeta(commentPlugin, {type: "newComment", from: sel.from, to: sel.to, comment: new Comment(text, randomID())}));
+    openPrompt({
+      title: "Add a Commnet",
+      fields: {
+        comment: new TextField({
+          label: "Say something",
+          required: true
+        }),
+      },
+      callback(attrs) {
+        let text = attrs.comment;
+        if (text) {
+          dispatch(state.tr.setMeta(commentPlugin, { type: "newComment", from: sel.from, to: sel.to, comment: new Comment(text, randomID()) }));
+          return true;
+        }
+      }
+    });
   }
   return true;
 };
