@@ -84,20 +84,70 @@ header nav img{
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 50px 0;
-}
-
-.feature-group{
-  height: 500px;
-  width: 70%;
-  background-color: lightgray;
-  margin: 20px;
-  text-align: center;
 }
 
 #demo{
   background-color: rgb(47,50,53);
   padding-top: 0;
+  
+}
+#demo-img{
+  width: 1200px;
+  height: 300px;
+  overflow: hidden;
+  box-shadow: 0 -1px 20px rgba(255, 255, 255, 0.1);
+}
+
+#demo-img img{
+  width: 100%;
+}
+
+
+#features{
+  margin-top: 50px;
+}
+
+.feature-group{
+  height: 500px;
+  width: 70%;
+  margin: 50px;
+  display: flex;
+  box-shadow: 0 -1px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.feature-text{
+  padding: 30px;
+  width: 50%;
+}
+.feature-text h2{
+  margin-bottom: 30px;
+}
+
+.feature-text ul{
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.feature-text li{
+  margin-bottom: 20px;
+}
+
+.feature-img{
+  width: 50%;
+  overflow: hidden;
+  background-color: rgb(251,251,251);
+  display: flex;
+  align-items: center;
+}
+
+.feature-img img{
+  width: 100%;
+}
+
+.join{
+padding: 50px;
 }
 
 footer{
@@ -118,4 +168,9 @@ footer .copyright{
   header nav{
     margin: 0 100px ;
   }
+
+  .feature-group{
+    width: 50%;
+  }
 }
+
