@@ -16,7 +16,7 @@ const saveEvery = 1e4;
 class Instance {
   constructor(id, doc, comments) {
     this.id = id;
-    this.doc = doc || schema.node("doc", null, [schema.node("heading", { "attrs": { "level": 1 } }, [])]);
+    this.doc = doc;
     this.comments = comments || new Comments;
     // The version number of the document instance.
     this.version = 0;

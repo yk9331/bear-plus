@@ -382,31 +382,33 @@ function setCounts(doc) {
 }
 
 app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) => {
-  $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
-  $('#permission-read').val(note.view_permission);
-  $('#permission-write').val(note.write_permission);
-  $('.note-tab.current').children('.info').children('.title').text(note.title);
-  $('.note-tab.current').children('.info').children('.brief').text(note.brief);
-  if (note.Tags) {
-    let exist = false;
-    for (let t of note.Tags) {
-      if (t.id == app.currentTag) exist = true;
-    }
-    if (!exist) {
-      app.fetchNotes('normal', '', '');
+  if (note) {
+    $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
+    $('#permission-read').val(note.view_permission);
+    $('#permission-write').val(note.write_permission);
+    $('.note-tab.current').children('.info').children('.title').text(note.title);
+    $('.note-tab.current').children('.info').children('.brief').text(note.brief);
+    if (note.Tags != [] && app.currentTag != '') {
+      let exist = false;
+      for (let t of note.Tags) {
+        if (t.id == app.currentTag) exist = true;
+      }
+      if (!exist) {
+        app.fetchNotes('normal', '', '');
+      }
     }
     app.fetchTags();
+    const savedAt = note.savedAt ? new Date(note.savedAt) : new Date(note.createdAt);
+    const createdAt = new Date(note.createdAt);
+    const saveTime = savedAt.toLocaleString('default', { month: 'short', year: 'numeric' }).toUpperCase() + ' ' + ('0' + savedAt.getHours()).substr(-2) + ':' + ('0' + savedAt.getMinutes()).substr(-2);
+    const createTime = createdAt.toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase() + ' AT ' + ('0' + createdAt.getHours()).substr(-2) + ':' + ('0' + createdAt.getMinutes()).substr(-2);
+    $('#saved-at').children('.date').text(savedAt.getDate());
+    $('#saved-at').children('.right').children('.time').text(saveTime);
+    $('#created-at').children('.time').text(createTime);
+    $('#collab-data').children('.count').text(onlineUserCount);
+    if (lastChangeUser) $('#collab-data').children('.user').text(decodeURIComponent(lastChangeUser.name));
+    if (app.view) setCounts(app.view.state.doc);
   }
-  const savedAt = note.savedAt ? new Date(note.savedAt) : new Date(note.createdAt);
-  const createdAt = new Date(note.createdAt);
-  const saveTime = savedAt.toLocaleString('default', { month: 'short', year: 'numeric' }).toUpperCase() + ' ' + ('0' + savedAt.getHours()).substr(-2) + ':' + ('0' + savedAt.getMinutes()).substr(-2);
-  const createTime = createdAt.toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase() + ' AT ' + ('0' + createdAt.getHours()).substr(-2) + ':' + ('0' + createdAt.getMinutes()).substr(-2);
-  $('#saved-at').children('.date').text(savedAt.getDate());
-  $('#saved-at').children('.right').children('.time').text(saveTime);
-  $('#created-at').children('.time').text(createTime);
-  $('#collab-data').children('.count').text(onlineUserCount);
-  if (lastChangeUser) $('#collab-data').children('.user').text(decodeURIComponent(lastChangeUser.name));
-  if (app.view) setCounts(app.view.state.doc);
 });
 
 app.socket.on('collab started', (data) => {

@@ -12,30 +12,57 @@ const createNewNote = async (req, res) => {
     return response.errorForbidden(req, res);
   }
   const permission = req.query.currentPermission == '' ? 'private' : req.query.currentPermission;
+  const tag = req.query.currentTag == '' ? null : await Tag.findByPk(req.query.currentTag);
+  const doc = tag ? {
+    type: 'doc',
+    content: [
+      { type: 'heading', attrs: { 'level': 1 } },
+      {
+        type: 'paragraph',
+        content: [{
+          type: 'text',
+          marks: [{ type: 'hashtag', attrs: { 'href': `#${tag.tag}` } }],
+          text: `#${tag.tag}`
+        }]
+      }]
+  } : {
+    type: 'doc',
+    content: [{ type: 'heading', attrs: { 'level': 1 } }]
+    };
+  const brief = tag ? `#${tag.tag}` : null;
   const note = await Note.create({
+    doc: JSON.stringify(doc),
+    brief,
     ownerId: req.user.id,
     content: '',
     view_permission: permission
   });
+  const whereStament = {
+    state: 'normal',
+    ownerId: req.user.id
+  };
+  if (req.query.currentPermission !== '') {
+    whereStament.view_permission = req.query.currentPermission;
+  }
   let noteList;
-  if (req.query.currentPermission == '') {
+  if (tag) {
+    await note.addTag(tag);
     noteList = await Note.findAll({
-      where: {
-        state: 'normal',
-        ownerId: req.user.id
-      },
+      where: whereStament,
       order: [
         ['pinned', 'DESC'],
         ['updatedAt', 'DESC'],
       ],
+      include: [{
+        model: Tag,
+        where: {
+          id: tag.id
+        }
+      }]
     });
   } else {
     noteList = await Note.findAll({
-      where: {
-        view_permission: req.query.currentPermission,
-        state: 'normal',
-        ownerId: req.user.id
-      },
+      where: whereStament,
       order: [
         ['pinned', 'DESC'],
         ['updatedAt', 'DESC'],
@@ -175,12 +202,14 @@ const getNotes = async (req, res) => {
   const userId = req.user ? req.user.userid : null;
   let noteList = null;
   if (profileId == userId) {
+    const whereStament = {
+      ownerId: req.user.id,
+      state: type,
+    };
+    if (permission != '') whereStament.view_permission = permission;
     if (tag != '') {
       noteList = await Note.findAll({
-        where: {
-          state: type,
-          ownerId: req.user.id
-        },
+        where: whereStament,
         order: [
           ['pinned', 'DESC'],
           ['updatedAt', 'DESC'],
@@ -192,24 +221,9 @@ const getNotes = async (req, res) => {
           }
         }]
       });
-    } else if (permission != '') {
-      noteList = await Note.findAll({
-        where: {
-          view_permission: permission,
-          state: type,
-          ownerId: req.user.id
-        },
-        order: [
-          ['pinned', 'DESC'],
-          ['updatedAt', 'DESC'],
-        ],
-      });
     } else {
       noteList = await Note.findAll({
-        where: {
-          state: type,
-          ownerId: req.user.id
-        },
+        where: whereStament,
         order: [
           ['pinned', 'DESC'],
           ['updatedAt', 'DESC'],
@@ -290,15 +304,24 @@ const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuser, authors
     if (doc) {
       const title = doc.firstChild.textContent != '' ? doc.firstChild.textContent : null;
       const brief = doc.textContent != '' ? doc.textContent.slice(doc.firstChild.textContent.length, 200) : null;
+      const textcontent = doc.textContent;
       const regexp = new RegExp('(?:^)?#[\\w-]+', 'g');
-      const match = doc.toString().match(regexp);
-      const tags = match ? _.uniq(match.map(t => t.slice(1))) : [];
+      let match = [];
+      doc.forEach((node, offset, index) => {
+        if (node.type.name == 'paragraph') {
+          const t = node.textContent.match(regexp);
+          if(t)
+          match = match.concat(t);
+        }
+      });
+      const tags =  _.uniq(match.map(t => t.slice(1)));
       const user = await User.findOne({ where: { userid: lastchangeuser.slice(1) } });
       const lastchangeuserId = user ? user.id : null;
       await updateNoteTags(id, tags);
       await Note.update({
         title,
         brief,
+        textcontent,
         doc: JSON.stringify(doc.toJSON()),
         comment: JSON.stringify({ data: comments.comments }),
         lastchangeAt,

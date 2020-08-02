@@ -48,14 +48,16 @@ function updateNoteInfo(e, action) {
 
 // Create New Note
 $('#new-note').click(() => {
-  fetch(`/api/1.0/note?currentPermission=${app.currentPermission}`)
+  fetch(`/api/1.0/note?currentPermission=${app.currentPermission}&&currentTag=${app.currentTag}`)
     .then(res => res.json())
     .then(({ noteId, noteList }) => {
+      if (app.view !== null) {
+        app.view.destroy();
+        app.view = null;
+      }
       $('.note-tab.current').removeClass('current');
       app.currentNote = noteId;
       createNotes(noteList, 'normal');
-      if (app.view !== null) app.view.destroy();
-      app.newEditor(noteId, true);
     });
 });
 
@@ -223,13 +225,14 @@ app.fetchNotes = (type, permission = '', tag = '') => {
   app.currentType = type;
   app.currentPermission = permission;
   app.currentTag = tag;
-  type = tag == '' ? type : 'normal';
+  // type = tag == '' ? type : 'normal';
   $('.type.current').removeClass('current');
   $('.sub-type.current').removeClass('current');
   $('.tag.current').removeClass('current');
   if (tag != '') {
     $(`#${tag}`).addClass('current');
-  }else if (permission != '') {
+  }
+  if (permission != '') {
     $(`#${permission}`).addClass('current');
   } else {
     $(`#${type}`).addClass('current');
@@ -248,20 +251,20 @@ $('#normal').click((e) => {
   } else {
     if (app.currentType == 'normal' && app.currentPermission == '') return;
     $('#new-note').attr('disabled', false);
-    app.fetchNotes('normal');
+    app.fetchNotes('normal', '', app.currentTag);
   }
 });
 
 $('#archive').click((e) => {
   if (app.currentType == 'archive') return;
   $('#new-note').attr('disabled', true);
-  app.fetchNotes('archive');
+  app.fetchNotes('archive', '', app.currentTag);
 });
 
 $('#trash').click((e) => {
   if (app.currentType == 'trash') return;
   $('#new-note').attr('disabled', true);
-  app.fetchNotes('trash');
+  app.fetchNotes('trash', '', app.currentTag);
 });
 
 $('#normal-dropdown').click(() => {
@@ -277,13 +280,13 @@ $('#normal-dropdown').click(() => {
 $('#public').click(() => {
   if (app.currentType == 'normal' && app.currentPermission == 'public') return;
   $('#new-note').attr('disabled', false);
-  app.fetchNotes('normal', 'public');
+  app.fetchNotes('normal', 'public', app.currentTag);
 });
 
 $('#private').click(() => {
   if (app.currentType == 'normal' && app.currentPermission == 'private') return;
   $('#new-note').attr('disabled', false);
-  app.fetchNotes('normal', 'private');
+  app.fetchNotes('normal', 'private', app.currentTag);
 });
 
 function createTags(tagList) {
@@ -295,9 +298,12 @@ function createTags(tagList) {
     if (app.currentTag == tagList[i].id) tag.addClass('current');
     tag.click((e) => {
       const id = $(e.target).attr('id') || $(e.target).parent().attr('id');
-      if (id == app.currentTag) return;
-      $('#new-note').attr('disabled', false);
-      app.fetchNotes('tag', '', tagList[i].id);
+      if (id == app.currentTag) {
+        app.fetchNotes(app.currentType, app.currentPermission);
+      } else {
+        app.fetchNotes(app.currentType, app.currentPermission, tagList[i].id);
+      }
+      // $('#new-note').attr('disabled', false);
     });
     $('#tags').append(tag);
   }
@@ -315,4 +321,9 @@ app.fetchTags = () => {
 $(document).ready(() => {
   app.fetchNotes('normal');
   app.fetchTags();
+});
+
+$('#search-form').on('submit', (e) => {
+  e.preventDefault();
+  console.log($('#search-input').val(), 'Type: ' + app.currentType, 'Permission: ' + app.currentPermission, 'Tag: ' + app.currentTag);
 });
