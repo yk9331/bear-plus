@@ -1,8 +1,8 @@
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
-const config = require('../config');
+const { SESSION_NAME, SESSION_SECRETE } = process.env;
 const { Note, Tag, User } = require('../models');
-const { startCollab, getCollab, postCollab, scheduleSave } = require('../collab/collab_controller');
+const { startCollab, getCollab, postCollab, scheduleSave } = require('./collab_controller');
 const realtime = {
   io: null,
 };
@@ -23,8 +23,8 @@ realtime.initSocket = (server, sessionStore) => {
 	realtime.io.use(
 		passportSocketIo.authorize({
 			cookieParser: cookieParser,
-			key: config.sessionName,
-			secret: config.sessionSecret,
+			key: SESSION_NAME,
+			secret: SESSION_SECRETE,
 			store: sessionStore,
 			success: onAuthorizeSuccess,
 			fail: onAuthorizeFail

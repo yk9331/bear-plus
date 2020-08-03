@@ -8,7 +8,7 @@ function errorForbidden (req, res) {
 }
 
 function errorNotFound (req, res) {
-  responseError(res, '404', 'Not Found', "We can't find the page you're looking for. You could head back to home.");
+  responseError(res, '404', 'Not Found', 'We can\'t find the page you\'re looking for. You could head back to home.');
 }
 
 function errorBadRequest (req, res) {
@@ -24,7 +24,7 @@ function errorInternalError (req, res) {
 }
 
 function errorServiceUnavailable (req, res) {
-  res.status(503).send("I'm busy right now, try again later.");
+  res.status(503).send('I\'m busy right now, try again later.');
 }
 
 function responseError (res, code, detail, msg) {

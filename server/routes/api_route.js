@@ -5,9 +5,27 @@ const noteImageUpload = s3Upload.fields([{ name: 'image', maxCount: 1 }]);
 const avatarS3Upload = upload('avatar/');
 const avatarImageUpload = avatarS3Upload.fields([{ name: 'avatar', maxCount: 1 }]);
 
-const { register, emailAuthenticate, facebookSignin, facebookCallback, googleSignin, googleCallback, signinRedirect } = require('../auth/auth_controller');
-const { uploadImage, createNewNote, getNotes, getTags, updateNoteInfo, updateNoteUrl, updateNotePermission} = require('../note/note_controller');
-const { getUserSetting, updateUserSetting, updateUserPassword ,updateUserAvatar } = require('../user/user_controller');
+const {
+  register,
+  emailAuthenticate,
+  facebookSignin,
+  facebookCallback,
+  signinRedirect } = require('../controllers/auth_controller');
+
+const {
+  uploadImage,
+  createNewNote,
+  getNotes,
+  getTags,
+  updateNoteInfo,
+  updateNoteUrl,
+  updateNotePermission } = require('../controllers/note_controller');
+
+const {
+  getUserSetting,
+  updateUserSetting,
+  updateUserPassword,
+  updateUserAvatar } = require('../controllers/user_controller');
 
 // Auth
 router.route('/register')
@@ -21,12 +39,6 @@ router.route('/auth/facebook')
 
 router.route('/auth/facebook/callback')
   .get(facebookCallback,signinRedirect);
-
-router.route('/auth/google')
-  .get(googleSignin);
-
-router.route('/auth/google/callback')
-  .get(googleCallback,signinRedirect);
 
 router.route('/logout')
   .get((req, res) => {

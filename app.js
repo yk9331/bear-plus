@@ -1,5 +1,6 @@
 'use strict';
 require('dotenv').config();
+const { PORT, API_VERSION, SESSION_NAME, SESSION_SECRETE, SESSION_LIFE } = process.env;
 const path = require('path');
 
 const session = require('express-session');
@@ -11,27 +12,26 @@ const cookieParser = require('cookie-parser');
 const ejs = require('ejs');
 
 const models = require('./server/models');
-const config = require('./server/config');
 const response = require('./server/response');
-const realtime = require('./server/realtime/realtime_controller');
+const realtime = require('./server/controllers/realtime_controller');
 
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-const port = process.env.PORT;
+
 
 // Setup Session
 var sessionStore = new SequelizeStore({
   db: models.sequelize
 });
 app.use(session({
-  name: config.sessionName,
-  secret: config.sessionSecret,
+  name: SESSION_NAME,
+  secret: SESSION_SECRETE,
   resave: false, // don't save session if unmodified
   saveUninitialized: true, // always create session to ensure the origin
   rolling: true, // reset maxAge on every response
   cookie: {
-    maxAge: config.sessionLife
+    maxAge: SESSION_LIFE
   },
   store: sessionStore
 }));
@@ -59,11 +59,8 @@ app.set('views', './public/views');
 app.engine('ejs', ejs.renderFile);
 app.set('view engine', 'ejs');
 
-// Set Generally Variables
-app.locals.serverURL = config.serverURL;
-
 // API Routes
-app.use('/api/1.0', require('./server/routes/api_route'));
+app.use(`/api/${API_VERSION}`, require('./server/routes/api_route'));
 
 // Main View Routes
 app.use('/', require('./server/routes/view_route'));
@@ -81,5 +78,5 @@ app.use((err, req, res, next) => {
 
 // Server Listen
 models.sequelize.sync().then(function () {
-  server.listen(port, () => { console.log(`Listening on port: ${port}`); });
+  server.listen(PORT, () => { console.log(`Listening on port: ${PORT}`); });
 });

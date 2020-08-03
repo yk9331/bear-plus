@@ -1,6 +1,4 @@
 /* global app, $:true */
-import 'bootstrap';
-
 // Connect to Socket
 var io = require('socket.io-client');
 app.socket = io();
@@ -210,7 +208,7 @@ function createNotes(noteList, type) {
   if (!inList && app.view != null) {
     app.currentNote = null;
     $('#button-container').css('display', 'none');
-    $('#editor').css('background-image', "url('/img/note-background.png')");
+    $('#editor').css('background-image', 'url(\'/img/note-background.png\')');
     app.view.destroy();
   } else if (inList && app.view == null) {
     if (app.profileId == app.userId || (app.userId && $('.note-tab.current').attr('write_permission') == 'public')) {

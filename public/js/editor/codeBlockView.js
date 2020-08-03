@@ -1,4 +1,4 @@
-import {schema} from "./schema";
+import {schema} from './schema';
 import { exitCode } from 'prosemirror-commands';
 import { Selection, TextSelection } from 'prosemirror-state';
 import CodeMirror from 'codemirror';

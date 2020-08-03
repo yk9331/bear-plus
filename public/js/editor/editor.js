@@ -1,23 +1,23 @@
 /* global app, $:true */
-import { buildInputRules, buildKeymap } from "prosemirror-example-setup";
-import { Step } from "prosemirror-transform";
+import { buildInputRules, buildKeymap } from 'prosemirror-example-setup';
+import { Step } from 'prosemirror-transform';
 import 'prosemirror-replaceattrs';    //Registe replaceAttr Step
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import { history } from "prosemirror-history";
-import { collab, receiveTransaction, sendableSteps, getVersion } from "prosemirror-collab";
-import { menuBar} from "prosemirror-menu";
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { history } from 'prosemirror-history';
+import { collab, receiveTransaction, sendableSteps, getVersion } from 'prosemirror-collab';
+import { menuBar} from 'prosemirror-menu';
 import { imageUploader } from 'prosemirror-image-uploader';
-import { suggestionsPlugin } from "@quartzy/prosemirror-suggestions";
-import { dropCursor } from "prosemirror-dropcursor";
-import { gapCursor } from "prosemirror-gapcursor";
-import { baseKeymap } from "prosemirror-commands";
+import { suggestionsPlugin } from '@quartzy/prosemirror-suggestions';
+import { dropCursor } from 'prosemirror-dropcursor';
+import { gapCursor } from 'prosemirror-gapcursor';
+import { baseKeymap } from 'prosemirror-commands';
 
-import { schema } from "./schema";
-import { Reporter } from "./reporter";
-import { commentPlugin, commentUI} from "./comment";
+import { schema } from './schema';
+import { Reporter } from './reporter';
+import { commentPlugin, commentUI} from './comment';
 
-import { CodeBlockView, arrowHandler } from "./codeBlockView";
+import { CodeBlockView, arrowHandler } from './codeBlockView';
 import { keymap } from 'prosemirror-keymap';
 const _ = require('lodash');
 import { buildMenuItems } from './menu';
@@ -45,35 +45,33 @@ function triggerCharacter(char, _ref) {
    * @param {ResolvedPos} $position
    */
   return function ($position) {
+    if ($position.parent.type.name == 'heading') return false;
     // Matching expressions used for later
-    var suffix = new RegExp('\\s' + char + '$');
-    var regexp = allowSpaces ? new RegExp(char + '.*?(?=\\s' + char + '|$)', 'g') : new RegExp('(?:^)?' + char + '[\\w-]+', 'g');
+    const suffix = new RegExp('\\s' + char + '$');
+    const regexp = allowSpaces ?
+      new RegExp(char + '.*?(?=\\s' + char + '|$)', 'g') :
+      new RegExp('(?:^)?' + char + '[\\w-]+', 'g');
 
     // Lookup the boundaries of the current node
-    var textFrom = $position.before();
-    var textTo = $position.end();
+    const textFrom = $position.before();
+    const textTo = $position.end();
+    const text = $position.doc.textBetween(textFrom, textTo, '\0', '\0');
 
-    var text = $position.doc.textBetween(textFrom, textTo, '\0', '\0');
-
-    var match = void 0;
-
-    while (match = regexp.exec(text)) {
+    let match = null;
+    while ((match = regexp.exec(text)) !== null) {
       // Javascript doesn't have lookbehinds; this hacks a check that first character is " " or the line beginning
       var prefix = match.input.slice(Math.max(0, match.index - 1), match.index);
       if (!/^[\s\0]?$/.test(prefix)) {
         continue;
       }
-      if ($position.parent.type.name == 'heading') return;
       // The absolute position of the match in the document
-      var from = match.index + $position.start();
-      var to = from + match[0].length;
-
+      const from = match.index + $position.start();
+      let to = from + match[0].length;
       // Edge case handling; if spaces are allowed and we're directly in between two triggers
       if (allowSpaces && suffix.test(text.slice(to - 1, to + 1))) {
         match[0] += ' ';
         to++;
       }
-
       // If the $position is located within the matched substring, return that range
       if (from < $position.pos && to >= $position.pos) {
         return { range: { from: from, to: to }, text: match[0] };
@@ -97,7 +95,7 @@ class EditorConnection {
   constructor(report, url, editable) {
     this.report = report;
     this.url = url;
-    this.state = new State(null, "start");
+    this.state = new State(null, 'start');
     this.request = null;
     this.backOff = 0;
     this.view = null;
@@ -108,22 +106,22 @@ class EditorConnection {
   // All state changes go through this
   dispatch(action) {
     let newEditState = null;
-    if (action.type == "loaded") {
+    if (action.type == 'loaded') {
       let editState = EditorState.create({
         doc: action.doc,
         plugins: [
           suggestionsPlugin({
             debug: false,
             suggestionClass: 'hashtag',
-            matcher: triggerCharacter("#", { allowSpaces: false }),
+            matcher: triggerCharacter('#', { allowSpaces: false }),
             onEnter({ view, range, text}) {
               var transaction = view.state.tr.removeMark(range.from, range.to, schema.marks.hashtag);
-              app.connection.dispatch({ type: "transaction", transaction });
+              app.connection.dispatch({ type: 'transaction', transaction });
               return false;
             },
             onExit({ view ,range ,text}) {
               var transaction = view.state.tr.addMark(range.from, range.to, schema.marks.hashtag.create({href:text}));
-              app.connection.dispatch({ type: "transaction", transaction });
+              app.connection.dispatch({ type: 'transaction', transaction });
               return false;
             },
             onKeyDown({ view, event }) {
@@ -140,7 +138,7 @@ class EditorConnection {
           history({preserveItems: true}),
           collab({version: action.version,clientID:app.userId}),
           commentPlugin,
-          commentUI(transaction => this.dispatch({ type: "transaction", transaction })),
+          commentUI(transaction => this.dispatch({ type: 'transaction', transaction })),
           arrowHandlers,
           imageUploader({
             async upload(fileOrUrl, view) {
@@ -166,35 +164,35 @@ class EditorConnection {
         ],
         comments: action.comments
       });
-      this.state = new State(editState, "poll");
+      this.state = new State(editState, 'poll');
       this.poll();
-    } else if (action.type == "restart") {
-      this.state = new State(null, "start");
+    } else if (action.type == 'restart') {
+      this.state = new State(null, 'start');
       this.start();
-    } else if (action.type == "poll") {
-      this.state = new State(this.state.edit, "poll");
+    } else if (action.type == 'poll') {
+      this.state = new State(this.state.edit, 'poll');
       this.poll();
-    } else if (action.type == "recover") {
+    } else if (action.type == 'recover') {
       if (action.error.status && action.error.status < 500) {
         this.report.failure(action.error);
         this.state = new State(null, null);
       } else {
-        this.state = new State(this.state.edit, "recover");
+        this.state = new State(this.state.edit, 'recover');
         this.recover(action.error);
       }
-    } else if (action.type == "transaction") {
+    } else if (action.type == 'transaction') {
       newEditState = this.state.edit.apply(action.transaction);
     }
     if (newEditState) {
       let sendable;
       if (newEditState.doc.content.size > 40000) {
-        if (this.state.comm != "detached") this.report.failure("Document too big. Detached.");
-        this.state = new State(newEditState, "detached");
-      } else if ((this.state.comm == "poll" || action.requestDone) && (sendable = this.sendable(newEditState))) {
-        this.state = new State(newEditState, "send");
+        if (this.state.comm != 'detached') this.report.failure('Document too big. Detached.');
+        this.state = new State(newEditState, 'detached');
+      } else if ((this.state.comm == 'poll' || action.requestDone) && (sendable = this.sendable(newEditState))) {
+        this.state = new State(newEditState, 'send');
         this.send(newEditState, sendable);
       } else if (action.requestDone) {
-        this.state = new State(newEditState, "poll");
+        this.state = new State(newEditState, 'poll');
       } else {
         this.state = new State(newEditState, this.state.comm);
       }
@@ -205,10 +203,10 @@ class EditorConnection {
       if (this.view)
         this.view.updateState(this.state.edit);
       else
-        this.setView(new EditorView(document.querySelector("#editor"), {
+        this.setView(new EditorView(document.querySelector('#editor'), {
           state: this.state.edit,
           nodeViews: { code_block: (node, view, getPos) => new CodeBlockView(node, view, getPos) },
-          dispatchTransaction: transaction => this.dispatch({ type: "transaction", transaction }),
+          dispatchTransaction: transaction => this.dispatch({ type: 'transaction', transaction }),
           editable: () => { return this.editable;}
         }));
     } else this.setView(null);
@@ -257,7 +255,7 @@ class EditorConnection {
     if (newBackOff > 1000 && this.backOff < 1000) this.report.delay(err);
     this.backOff = newBackOff;
     setTimeout(() => {
-      if (this.state.comm == "recover") this.dispatch({type: "poll"});
+      if (this.state.comm == 'recover') this.dispatch({type: 'poll'});
     }, this.backOff);
   }
 
@@ -281,7 +279,7 @@ app.newEditor = function (noteId, editable) {
   if (app.connection) app.connection.close();
   app.socket.emit('open note', { noteId });
   $('#button-container').css('display', 'block');
-  app.connection = new EditorConnection(report, "/api/1.0/" + noteId, editable);
+  app.connection = new EditorConnection(report, '/api/1.0/' + noteId, editable);
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
   return true;
@@ -383,7 +381,7 @@ function setCounts(doc) {
 
 app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) => {
   if (note) {
-    $('#note-shortUrl-input').attr("placeholder", note.shortid).attr("noteurl", note.shortid).val('');
+    $('#note-shortUrl-input').attr('placeholder', note.shortid).attr('noteurl', note.shortid).val('');
     $('#permission-read').val(note.view_permission);
     $('#permission-write').val(note.write_permission);
     $('.note-tab.current').children('.info').children('.title').text(note.title);
@@ -415,7 +413,7 @@ app.socket.on('collab started', (data) => {
   app.connection.report.success();
   app.connection.backOff = 0;
   app.connection.dispatch({
-    type: "loaded",
+    type: 'loaded',
     doc: schema.nodeFromJSON(data.doc),
     version: data.version,
     users: data.users,
@@ -433,8 +431,8 @@ app.socket.on('collab posted', (data) => {
     let tr = steps
       ? receiveTransaction(app.connection.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
       : app.connection.state.edit.tr;
-    tr.setMeta(commentPlugin, { type: "receive", version: data.commentVersion, events: [], sent: comments.length });
-    app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+    tr.setMeta(commentPlugin, { type: 'receive', version: data.commentVersion, events: [], sent: comments.length });
+    app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
   }
 });
 
@@ -444,8 +442,8 @@ app.socket.on('collab updated', (data) => {
     app.connection.backOff = 0;
     if (data.steps && (data.steps.length || data.comment.length)) {
       let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
-      tr.setMeta(commentPlugin, {type: "receive", version: data.commentVersion, events: data.comment, sent: 0});
-      app.connection.dispatch({ type: "transaction", transaction: tr, requestDone: true });
+      tr.setMeta(commentPlugin, {type: 'receive', version: data.commentVersion, events: data.comment, sent: 0});
+      app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
       app.connection.view.focus();
     }
   }
@@ -460,12 +458,12 @@ app.socket.on('collab error', (error) => {
     // The client's document conflicts with the server's version.
     // Poll for changes and then try again.
     app.connection.backOff = 0;
-    app.connection.dispatch({type: "poll"});
+    app.connection.dispatch({type: 'poll'});
   } else if (error.status == 410 || badVersion(error)) {
     app.connection.report.failure(error);
-    app.connection.dispatch({type: "restart"});
+    app.connection.dispatch({type: 'restart'});
   } else {
-    app.connection.dispatch({type: "recover", error: error});
+    app.connection.dispatch({type: 'recover', error: error});
   }
 });
 

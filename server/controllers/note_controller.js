@@ -1,7 +1,7 @@
 const { Note, User, Tag } = require('../models');
 const response = require('../response');
 const _ = require('lodash');
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 
 const uploadImage = async (req, res) => {
   const url = req.files.image[0].location;
@@ -345,7 +345,7 @@ const updateNoteTags = async (id, tags) => {
   const note = await Note.findOne({ where: { id } });
   const newList = [];
   for (let t of tags) {
-    const [tag, created] = await Tag.findOrCreate({ where: { tag: t } });
+    const [tag] = await Tag.findOrCreate({ where: { tag: t } });
     newList.push(tag);
   }
   const oldList = await note.getTags();

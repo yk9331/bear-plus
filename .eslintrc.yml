@@ -15,5 +15,4 @@ rules: {
   quotes: ["error", "single"],
   semi: ["error", "always"],
   no-trailing-spaces: ["error"],
-  max-classes-per-file: ["error", 3]
 }

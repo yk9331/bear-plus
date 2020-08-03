@@ -1,12 +1,20 @@
 const router = require('express').Router();
-const { renderUserPage } = require('../user/user_controller');
-const { redirectPage, renderHomepage } = require('../home/home_controller');
+const { renderUserPage } = require('../controllers/user_controller');
+
+const redirecUser = (req, res) => {
+  if (req.user) {
+    res.redirect(`/@${req.user.userid}`);
+  }
+  else {
+    res.redirect('/home');
+  }
+};
 
 router.route('/')
-  .get(redirectPage);
+  .get(redirecUser);
 
 router.route('/home')
-  .get(renderHomepage);
+  .get((req, res) => { res.render('home');});
 
 router.route('/:profileId')
   .get(renderUserPage);

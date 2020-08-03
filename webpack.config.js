@@ -9,28 +9,32 @@ module.exports = {
   entry: {
     font: path.join(__dirname, 'public/css/font.css'),
     emoji: path.join(__dirname, 'public/css/emoji.css'),
-    note: [
-      path.join(__dirname, 'public/js/modal.js'),
-      path.join(__dirname, 'public/js/index.js'),
-      path.join(__dirname, 'public/js/editor.js'),
+    common: [
+      'bootstrap'
     ],
     home: [
-      path.join(__dirname, 'public/js/modal.js'),
-      path.join(__dirname, 'public/js/home.js'),
+      path.join(__dirname, 'public/js/home/home.js'),
+      path.join(__dirname, 'public/js/includes/modal.js'),
     ],
-    'note-style': [
-      path.join(__dirname, 'public/css/codeMirrorEditor.css'),
-      path.join(__dirname, 'public/css/codeMirrorEditorEmbeded.css'),
-      path.join(__dirname, 'public/css/proseMirror.css'),
-      path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
-      path.join(__dirname, 'public/css/modal.css'),
-      path.join(__dirname, 'public/css/note.css'),
+    note: [
+      path.join(__dirname, 'public/js/note/note.js'),
+      path.join(__dirname, 'public/js/note/modal.js'),
+      path.join(__dirname, 'public/js/editor/editor.js'),
+      path.join(__dirname, 'public/js/includes/modal.js'),
     ],
     'home-style': [
       path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
       path.join(__dirname, 'public/css/modal.css'),
       path.join(__dirname, 'public/css/home.css'),
-    ]
+    ],
+    'note-style': [
+      path.join(__dirname, 'node_modules/bootstrap/dist/css/bootstrap.min.css'),
+      path.join(__dirname, 'public/css/codeMirrorEditor.css'),
+      path.join(__dirname, 'public/css/codeMirrorEditorEmbeded.css'),
+      path.join(__dirname, 'public/css/proseMirror.css'),
+      path.join(__dirname, 'public/css/modal.css'),
+      path.join(__dirname, 'public/css/note.css'),
+    ],
   },
 
   output: {
@@ -72,13 +76,13 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/views/includes/scripts.ejs',
       filename: path.join(__dirname, 'public/views/build/note-scripts.ejs'),
-      chunks: ['note'],
+      chunks: ['common', 'note'],
       chunksSortMode: 'manual',
     }),
     new HtmlWebpackPlugin({
       template: './public/views/includes/scripts.ejs',
       filename: path.join(__dirname, 'public/views/build/home-scripts.ejs'),
-      chunks: ['home'],
+      chunks: ['common', 'home'],
       chunksSortMode: 'manual',
     }),
     new MiniCssExtractPlugin(),
