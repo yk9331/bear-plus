@@ -1,3 +1,5 @@
+'use strict';
+
 const { Step } = require('prosemirror-transform');
 require('prosemirror-replaceattrs');  // Add replaceAttrStep
 const { schema } = require('../../public/js/editor/schema');

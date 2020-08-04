@@ -1,3 +1,5 @@
+'use strict';
+
 const { User, Note } = require('../models');
 const response = require('../response');
 

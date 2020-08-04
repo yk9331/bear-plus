@@ -1,3 +1,5 @@
+'use strict';
+
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
 const { SESSION_NAME, SESSION_SECRETE } = process.env;
@@ -11,11 +13,16 @@ const onAuthorizeSuccess = (data, accept) => {
   return accept();
 };
 
-const onAuthorizeFail = (data, message, error, accept) => {
-  if (error) {
-    console.log(error, message);
-  }
+const onAuthorizeFail = (data, msg, err, accept) => {
+  if (err) console.log(err, msg);
   accept();
+};
+
+const updateNoteInfo = async (noteId) => {
+  const note = await Note.findOne({ where: { id: noteId }, include: [{ model: Tag, attributes: ['id'] }, 'lastchangeuser'] });
+  const lastChangeUser = User.getProfile(note.lastchangeuser);
+  const onlineUserCount = realtime.io.sockets.adapter.rooms[noteId].length;
+  realtime.io.to(noteId).emit('update note info', {note, lastChangeUser, onlineUserCount});
 };
 
 realtime.initSocket = (server, sessionStore) => {
@@ -30,6 +37,7 @@ realtime.initSocket = (server, sessionStore) => {
 			fail: onAuthorizeFail
 		})
 	);
+
 	realtime.io.sockets.on('connection', (socket) => {
 		let currentNote = null;
 
@@ -82,13 +90,6 @@ realtime.initSocket = (server, sessionStore) => {
     });
   });
   return realtime.io;
-};
-
-const updateNoteInfo = async (noteId) => {
-  const note = await Note.findOne({ where: { id: noteId }, include: [{ model: Tag, attributes: ['id'] }, 'lastchangeuser'] });
-  const lastChangeUser = User.getProfile(note.lastchangeuser);
-  const onlineUserCount = realtime.io.sockets.adapter.rooms[noteId].length;
-  realtime.io.to(noteId).emit('update note info', {note, lastChangeUser, onlineUserCount});
 };
 
 module.exports = realtime;

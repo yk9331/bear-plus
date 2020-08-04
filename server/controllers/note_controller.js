@@ -1,7 +1,9 @@
-const { Note, User, Tag } = require('../models');
-const response = require('../response');
+'use strict';
+
 const _ = require('lodash');
 const { Op } = require('sequelize');
+const { Note, User, Tag } = require('../models');
+const response = require('../response');
 
 const uploadImage = async (req, res) => {
   const url = req.files.image[0].location;
@@ -29,13 +31,13 @@ const createNewNote = async (req, res) => {
   } : {
     type: 'doc',
     content: [{ type: 'heading', attrs: { 'level': 1 } }]
-    };
-  const brief = tag ? `#${tag.tag}` : null;
+  };
+  const text = tag ? `#${tag.tag}` : null;
   const note = await Note.create({
     doc: JSON.stringify(doc),
-    brief,
+    brief: text,
+    content: text,
     ownerId: req.user.id,
-    content: '',
     view_permission: permission
   });
   const whereStament = {
@@ -123,31 +125,23 @@ const updateNoteInfo = async (req, res) => {
       });
       break;
   }
-  let noteList;
+
+  const whereStament = {
+    state: currentType,
+    ownerId: userId
+  };
+
   if (currentPermission !== '') {
-    noteList = await Note.findAll({
-      where: {
-        view_permission: currentPermission,
-        state: currentType,
-        ownerId: userId
-      },
-      order: [
-        ['pinned', 'DESC'],
-        ['updatedAt', 'DESC'],
-      ],
-    });
-  } else {
-    noteList = await Note.findAll({
-      where: {
-        state: currentType,
-        ownerId: userId
-      },
-      order: [
-        ['pinned', 'DESC'],
-        ['updatedAt', 'DESC'],
-      ],
-    });
+    whereStament.view_permission = currentPermission;
   }
+
+  const noteList = await Note.findAll({
+      where: whereStament,
+      order: [
+        ['pinned', 'DESC'],
+        ['updatedAt', 'DESC'],
+      ],
+    });
   res.json({ noteList });
 };
 

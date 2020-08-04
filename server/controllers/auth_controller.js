@@ -5,15 +5,8 @@ const validator = require('validator');
 const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const { NODE_ENV, SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = process.env;
-const { User } = require('../models');
 const serverULR = NODE_ENV === 'development' ? '' : SERVER_URL;
-
-const setReturnToFromReferer = function setReturnToFromReferer(req) {
-  var referer = req.get('referer');
-  console.log(referer);
-  if (!req.session) req.session = {};
-  req.session.returnTo = referer;
-};
+const { User } = require('../models');
 
 const passportGeneralCallback = function callback (accessToken, refreshToken, profile, done) {
   var stringifiedProfile = JSON.stringify(profile);
@@ -85,7 +78,6 @@ passport.use(new LocalStrategy({
         email: email
       }
     });
-
     if (!user) return done(null, false, 'Email not found, please try to sign up.');
     if (!await user.verifyPassword(password)) return done(null, false, 'Wrong password, please try again');
     return done(null, user);
@@ -101,7 +93,6 @@ passport.use(new FacebookStrategy({
 }, passportGeneralCallback));
 
 async function register(req, res, next) {
-  console.log(req.body);
   if (!req.body.email || !req.body.password || !req.body.username) {
     return res.json({ error: 'Username, email and password are required.' });
   }
@@ -148,7 +139,6 @@ function emailAuthenticate(req, res, next) {
 }
 
 function facebookSignin(req, res, next) {
-  setReturnToFromReferer(req);
   passport.authenticate('facebook')(req, res, next);
 }
 
@@ -158,15 +148,7 @@ function facebookCallback(req, res, next) {
   })(req, res, next);
 }
 
-function googleSignin(req, res, next) {
-  // TODO: Add Google Auth
-}
-
-function googleCallback(req, res, next) {
-  // TODO: Add Google Auth
-}
-
-function signinRedirect(req, res, next) {
+function signinRedirect(req, res) {
   res.redirect(`/@${req.user.userid}`);
 }
 
@@ -176,6 +158,4 @@ module.exports = {
   signinRedirect,
   facebookSignin,
   facebookCallback,
-  googleSignin,
-  googleCallback
 };
