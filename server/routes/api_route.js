@@ -46,7 +46,6 @@ router.route('/logout')
     res.redirect('/');
   });
 
-
 // User Setting
 router.route('/user/setting')
   .get(getUserSetting)
@@ -68,7 +67,7 @@ router.route('/tags')
 
 // Note
 router.route('/note')
-  .get(createNewNote);
+  .post(createNewNote);
 
 router.route('/note/url')
   .post(updateNoteUrl);

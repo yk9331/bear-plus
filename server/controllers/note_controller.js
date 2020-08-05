@@ -14,8 +14,8 @@ const createNewNote = async (req, res) => {
   if (!req.isAuthenticated()) {
     return response.errorForbidden(req, res);
   }
-  const permission = req.query.currentPermission == '' ? 'private' : req.query.currentPermission;
-  const tag = req.query.currentTag == '' ? null : await Tag.findByPk(req.query.currentTag);
+  const permission = req.body.currentPermission == '' ? 'private' : req.body.currentPermission;
+  const tag = req.body.currentTag == '' ? null : await Tag.findByPk(req.body.currentTag);
   const doc = tag ? {
     type: 'doc',
     content: [
@@ -44,8 +44,8 @@ const createNewNote = async (req, res) => {
     state: 'normal',
     ownerId: req.user.id
   };
-  if (req.query.currentPermission !== '') {
-    whereStament.view_permission = req.query.currentPermission;
+  if (req.body.currentPermission !== '') {
+    whereStament.view_permission = req.body.currentPermission;
   }
   let noteList;
   if (tag) {

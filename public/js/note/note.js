@@ -46,7 +46,17 @@ function updateNoteInfo(e, action) {
 
 // Create New Note
 $('#new-note').click(() => {
-  fetch(`/api/1.0/note?currentPermission=${app.currentPermission}&&currentTag=${app.currentTag}`)
+  const data = {
+    currentPermission: app.currentPermission,
+    currentTag: app.currentTag
+  };
+  fetch('/api/1.0/note', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers:{
+        'content-type': 'application/json'
+      },
+    })
     .then(res => res.json())
     .then(({ noteId, noteList }) => {
       if (app.view !== null) {
