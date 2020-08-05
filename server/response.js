@@ -1,10 +1,5 @@
-function errorForbidden (req, res) {
-  if (req.user) {
-    responseError(res, '403', 'Forbidden', 'oh no.');
-  } else {
-    req.flash('error', 'You are not allowed to access this page. Maybe try logging in?');
-    res.redirect('/');
-  }
+function errorForbidden(req, res) {
+  responseError(res, '403', 'Forbidden', 'You are not allow to view this page.');
 }
 
 function errorNotFound (req, res) {

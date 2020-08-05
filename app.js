@@ -1,12 +1,12 @@
 'use strict';
 require('dotenv').config();
-const { PORT, API_VERSION, SESSION_NAME, SESSION_SECRETE, SESSION_LIFE } = process.env;
+const { PORT, API_VERSION, SESSION_NAME, SESSION_SECRETE} = process.env;
+const config = require('./server/config/config');
 const path = require('path');
 
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const passport = require('passport');
-
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const ejs = require('ejs');
@@ -19,7 +19,6 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 
-
 // Setup Session
 var sessionStore = new SequelizeStore({
   db: models.sequelize
@@ -31,7 +30,7 @@ app.use(session({
   saveUninitialized: true, // always create session to ensure the origin
   rolling: true, // reset maxAge on every response
   cookie: {
-    maxAge: SESSION_LIFE
+    maxAge: config.SESSION_LIFE
   },
   store: sessionStore
 }));
