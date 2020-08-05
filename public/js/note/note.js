@@ -1,5 +1,6 @@
 /* global app, $:true */
 // Connect to Socket
+import 'bootstrap';
 var io = require('socket.io-client');
 app.socket = io();
 app.view = null;

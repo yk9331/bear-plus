@@ -9,17 +9,14 @@ module.exports = {
   entry: {
     font: path.join(__dirname, 'public/css/font.css'),
     emoji: path.join(__dirname, 'public/css/emoji.css'),
-    common: [
-      'bootstrap'
-    ],
     home: [
       path.join(__dirname, 'public/js/home/home.js'),
       path.join(__dirname, 'public/js/includes/modal.js'),
     ],
     note: [
       path.join(__dirname, 'public/js/note/note.js'),
-      path.join(__dirname, 'public/js/note/modal.js'),
       path.join(__dirname, 'public/js/editor/editor.js'),
+      path.join(__dirname, 'public/js/note/modal.js'),
       path.join(__dirname, 'public/js/includes/modal.js'),
     ],
     'home-style': [
@@ -57,6 +54,7 @@ module.exports = {
 
   plugins: [
     new webpack.ProvidePlugin({
+      //  _: 'lodash',
       $: 'jquery',
       jQuery: 'jquery',
       'window.jQuery': 'jquery',
@@ -76,13 +74,13 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/views/includes/scripts.ejs',
       filename: path.join(__dirname, 'public/views/build/note-scripts.ejs'),
-      chunks: ['common', 'note'],
+      chunks: [ 'note'],
       chunksSortMode: 'manual',
     }),
     new HtmlWebpackPlugin({
       template: './public/views/includes/scripts.ejs',
       filename: path.join(__dirname, 'public/views/build/home-scripts.ejs'),
-      chunks: ['common', 'home'],
+      chunks: [ 'home'],
       chunksSortMode: 'manual',
     }),
     new MiniCssExtractPlugin(),
