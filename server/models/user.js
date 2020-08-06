@@ -1,7 +1,7 @@
 'use strict';
 const Sequelize = require('sequelize');
 const bcrypt = require('bcrypt');
-const saltRounds = parseInt(process.env.SALT_ROUND);
+const { PWD_SALT_ROUND } = require('../config/config');
 const shortId = require('shortid');
 
 module.exports = (sequelize, DataTypes) => {
@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   User.hashPassword = async function (plain) {
-    return await bcrypt.hashSync(plain, saltRounds);
+    return await bcrypt.hashSync(plain, PWD_SALT_ROUND);
   };
 
   User.prototype.verifyPassword = async function (attempt) {

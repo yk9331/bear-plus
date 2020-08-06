@@ -1,11 +1,10 @@
-require('dotenv').config();
 const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION } = process.env;
+const { AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_SECRET, AWS_REGION } = require('./config/config');
 
 aws.config.update({
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  secretAccessKey: AWS_ACCESS_KEY_SECRET,
   accessKeyId: AWS_ACCESS_KEY_ID,
   region: AWS_REGION
 });

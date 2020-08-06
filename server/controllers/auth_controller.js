@@ -4,8 +4,8 @@ const passport = require('passport');
 const validator = require('validator');
 const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
-const { NODE_ENV, SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = process.env;
-const serverULR = NODE_ENV === 'development' ? '' : SERVER_URL;
+const { NODE_ENV, API_VERSION, LOCAL_SERVER_URL, SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = require('../config/config');
+const serverULR = NODE_ENV === 'development' ? LOCAL_SERVER_URL : SERVER_URL;
 const { User } = require('../models');
 
 const passportGeneralCallback = function callback (accessToken, refreshToken, profile, done) {
@@ -89,7 +89,7 @@ passport.use(new LocalStrategy({
 passport.use(new FacebookStrategy({
   clientID: FACEBOOK_ID,
   clientSecret: FACEBOOK_SECRET,
-  callbackURL: `${serverULR}/api/1.0/auth/facebook/callback`
+  callbackURL: `${serverULR}/api/${API_VERSION}/auth/facebook/callback`
 }, passportGeneralCallback));
 
 async function register(req, res, next) {

@@ -2,7 +2,7 @@
 
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
-const { SESSION_NAME, SESSION_SECRETE } = process.env;
+const { SESSION_NAME, SESSION_SECRETE } = require('../config/config');
 const { Note, Tag, User } = require('../models');
 const { startCollab, getCollab, postCollab, leaveCollab, scheduleSave } = require('./collab_controller');
 const realtime = {
