@@ -1,8 +1,11 @@
 const router = require('express').Router();
+const { S3_NOTE_IMAGE_PATH, S3_USER_AVATAR_PATH } = require('../config/config');
+
+// S3 image upload middleware
 const { upload } = require('../util');
-const s3Upload = upload('');
-const noteImageUpload = s3Upload.fields([{ name: 'image', maxCount: 1 }]);
-const avatarS3Upload = upload('avatar/');
+const imageS3Upload = upload(S3_NOTE_IMAGE_PATH);
+const noteImageUpload = imageS3Upload.fields([{ name: 'image', maxCount: 1 }]);
+const avatarS3Upload = upload(S3_USER_AVATAR_PATH);
 const avatarImageUpload = avatarS3Upload.fields([{ name: 'avatar', maxCount: 1 }]);
 
 const {
@@ -46,7 +49,7 @@ router.route('/logout')
     res.redirect('/');
   });
 
-// User Setting
+// User
 router.route('/user/setting')
   .get(getUserSetting)
   .post(updateUserSetting);
