@@ -1,114 +1,60 @@
 'use strict';
 
+const { NOTE_USER_COLORS, NOTE_MAX_STEP_HISTORY, NOTE_SAVE_INTERVAL } = require('../config/config');
+
 const { Step } = require('prosemirror-transform');
 require('prosemirror-replaceattrs');  // Add replaceAttrStep
 const { schema } = require('../../public/js/editor/schema');
 const { Mapping } = require('prosemirror-transform');
-const { Note } = require('../models');
+
+const { Note, Author } = require('../models');
 const { saveNote } = require('./note_controller');
+const { Comments } = require('./comment_controller');
 
-const MAX_STEP_HISTORY = 10000;
 const instances = Object.create(null);
-const saveEvery = 1e4;
-
-class Comment {
-  constructor(from, to, text, id) {
-    this.from = from;
-    this.to = to;
-    this.text = text;
-    this.id = id;
-  }
-
-  static fromJSON(json) {
-    return new Comment(json.from, json.to, json.text, json.id);
-  }
-}
-
-class Comments {
-  constructor(comments) {
-    this.comments = comments || [];
-    this.events = [];
-    this.version = 0;
-  }
-
-  mapThrough(mapping) {
-    for (let i = this.comments.length - 1; i >= 0; i--) {
-      let comment = this.comments[i];
-      let from = mapping.map(comment.from, 1), to = mapping.map(comment.to, -1);
-      if (from >= to) {
-        this.comments.splice(i, 1);
-      } else {
-        comment.from = from;
-        comment.to = to;
-      }
-    }
-  }
-
-  created(data) {
-    this.comments.push(new Comment(data.from, data.to, data.text, data.id));
-    this.events.push({ type: 'create', id: data.id });
-    this.version++;
-  }
-
-  index(id) {
-    for (let i = 0; i < this.comments.length; i++)
-      if (this.comments[i].id == id) return i;
-  }
-
-  deleted(id) {
-    let found = this.index(id);
-    if (found != null) {
-      this.comments.splice(found, 1);
-      this.version++;
-      this.events.push({ type: 'delete', id: id });
-      return;
-    }
-  }
-
-  eventsAfter(startIndex) {
-    let result = [];
-    for (let i = startIndex; i < this.events.length; i++) {
-      let event = this.events[i];
-      if (event.type == 'delete') {
-        result.push(event);
-      } else {
-        let found = this.index(event.id);
-        if (found != null) {
-          let comment = this.comments[found];
-          result.push({
-            type: 'create',
-            id: event.id,
-            text: comment.text,
-            from: comment.from,
-            to: comment.to
-          });
-        }
-      }
-    }
-    return result;
-  }
-}
 
 // A collaborative editing document instance.
 class Instance {
-  constructor(id, doc, comments) {
-    this.id = id;
-    this.doc = doc;
-    this.comments = comments || new Comments;
-    // The version number of the document instance.
+  constructor(note) {
+    const comment = note.comment ? JSON.parse(note.comment).data : null;
+    this.id = note.id;
+    this.doc = note.doc ? schema.nodeFromJSON(JSON.parse(note.doc)) : null;
+    this.comments = comment ? new Comments(comment.map(c => Comment.fromJSON(c))) : new Comments;
     this.version = 0;
     this.steps = [];
     this.lastActive = Date.now();
     this.saveTimeout = null;
-    this.users = {};
+    this.note = note;
+    this.onlineUsers = {};
+    this.authors = {};
+    note.authors.forEach((a) => {
+      this.authors[a.userId] = a.color;
+    });
+    console.log(this.authors);
   }
 
-  stop() {
-    // TODO: stop instance on closed
+  checkVersion(version) {
+    if (version < 0 || version > this.version) {
+      let err = new Error('Invalid version ' + version);
+      err.status = 400;
+      throw err;
+    }
   }
 
+  // Get events between a given document version and the current document version.
+  getEvents(version, commentVersion) {
+    this.checkVersion(version);
+    let startIndex = this.steps.length - (this.version - version);
+    if (startIndex < 0) return false;
+    let commentStartIndex = this.comments.events.length - (this.comments.version - commentVersion);
+    if (commentStartIndex < 0) return false;
+
+    return {steps: this.steps.slice(startIndex),
+            comment: this.comments.eventsAfter(commentStartIndex)};
+  }
+
+  // add events to master document
   addEvents(version, steps, comments, clientID) {
-    if (!this.users[clientID]) this.users[clientID] = clientID;
     this.checkVersion(version);
     if (this.version != version) return false;
     let doc = this.doc, maps = [];
@@ -121,8 +67,8 @@ class Instance {
     this.doc = doc;
     this.version += steps.length;
     this.steps = this.steps.concat(steps);
-    if (this.steps.length > MAX_STEP_HISTORY)
-      this.steps = this.steps.slice(this.steps.length - MAX_STEP_HISTORY);
+    if (this.steps.length > NOTE_MAX_STEP_HISTORY)
+      this.steps = this.steps.slice(this.steps.length - NOTE_MAX_STEP_HISTORY);
 
     this.comments.mapThrough(new Mapping(maps));
     if (comments) for (let i = 0; i < comments.length; i++) {
@@ -136,29 +82,11 @@ class Instance {
     return {version: this.version, commentVersion: this.comments.version};
   }
 
-  // : (Number)
-  // Check if a document version number relates to an existing
-  // document version.
-  checkVersion(version) {
-    if (version < 0 || version > this.version) {
-      let err = new Error('Invalid version ' + version);
-      err.status = 400;
-      throw err;
-    }
-  }
-
-  // : (Number, Number)
-  // Get events between a given document version and
-  // the current document version.
-  getEvents(version, commentVersion) {
-    this.checkVersion(version);
-    let startIndex = this.steps.length - (this.version - version);
-    if (startIndex < 0) return false;
-    let commentStartIndex = this.comments.events.length - (this.comments.version - commentVersion);
-    if (commentStartIndex < 0) return false;
-
-    return {steps: this.steps.slice(startIndex),
-            comment: this.comments.eventsAfter(commentStartIndex)};
+  async close() {
+    const lastUser = this.steps.length > 0 ? this.steps[this.steps.length - 1].clientID: null;
+    await saveNote(this.id, this.doc, this.comments, this.lastActive, lastUser);
+    if (this.setTimeout) clearTimeout(this.setTimeout);
+    delete instances[this.id];
   }
 }
 
@@ -168,38 +96,32 @@ async function getInstance(noteId) {
 }
 
 async function newInstance(id) {
-  const note = await Note.findOne({ where: { id } });
-  const doc = note.doc ? schema.nodeFromJSON(JSON.parse(note.doc)): null;
-  const comment = note.comment ? JSON.parse(note.comment).data : null;
-  const comments = comment ? new Comments(comment.map(c => Comment.fromJSON(c))) : null;
-  return instances[id] = new Instance(id, doc, comments);
+  const note = await Note.findOne({ where: { id }, include: ['authors'] });
+  return instances[id] = new Instance(note);
 }
 
-async function scheduleSave (noteId, cb) {
+const startCollab = async function (noteId, user) {
   const inst = await getInstance(noteId);
-  if (inst.saveTimeout != null) return;
-  inst.saveTimeout = setTimeout(async () => {
-    try {
-      inst.saveTimeout = null;
-      const lastUser = inst.steps[inst.steps.length - 1].clientID;
-      const authorship = JSON.stringify(inst.users);
-      const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, lastUser, authorship);
-      if (saved) {
-        cb(inst.id);
-      }
-    } catch (e) {
-      console.log(e);
+  let clientColor = null;
+  if (user) {
+    if (!inst.onlineUsers[user.id]) {
+      // Get next color index
+      const colorIndex = Object.keys(inst.onlineUsers).length > Object.keys(inst.authors).length ?
+        (Object.keys(inst.onlineUsers).length + 1) % NOTE_USER_COLORS.length :
+        (Object.keys(inst.authors).length + 1) % NOTE_USER_COLORS.length;
+      clientColor = !inst.authors[user.id] ? NOTE_USER_COLORS[colorIndex] : inst.authors[user.id];
+      inst.onlineUsers[user.id] = clientColor;
+    } else {
+      clientColor = inst.onlineUsers[user.id].color;
     }
-  }, saveEvery);
-}
-
-const startCollab = async function (noteId) {
-  const inst = await getInstance(noteId);
+  }
   return {
     doc: inst.doc.toJSON(),
     version: inst.version,
     comments: inst.comments.comments,
-    commentVersion: inst.comments.version
+    commentVersion: inst.comments.version,
+    clientID: user.id || null,
+    clientColor,
   };
 };
 
@@ -228,6 +150,21 @@ const getCollab = async function (data) {
 const postCollab = async function (data) {
   const steps = data.steps.map(s => Step.fromJSON(schema, s));
   const inst = await getInstance(data.noteId);
+  if (!inst.authors[data.clientID]) {
+    const color = inst.onlineUsers[data.clientID];
+    await Author.findOrCreate({
+      where: {
+        noteId: data.noteId,
+        userId: data.clientID
+      },
+      defaults: {
+        noteId: data.noteId,
+        userId: data.clientID,
+        color: color
+      }
+      });
+    inst.authors[data.clientID] = color;
+  }
   const result = inst.addEvents(data.version, steps, data.comment, data.clientID);
   if (result == false) {
     const err = new Error('Version note current');
@@ -238,9 +175,33 @@ const postCollab = async function (data) {
   }
 };
 
+const leaveCollab = async function (noteId, clientID, close) {
+  const inst = await getInstance(noteId);
+  delete inst.onlineUsers[clientID];
+  if (close) await inst.close();
+};
+
+async function scheduleSave (noteId, cb) {
+  const inst = await getInstance(noteId);
+  if (inst.saveTimeout != null) return;
+  inst.saveTimeout = setTimeout(async () => {
+    try {
+      inst.saveTimeout = null;
+      const lastUser = inst.steps[inst.steps.length - 1].clientID;
+      const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, lastUser);
+      if (saved) {
+        cb(inst.id);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, NOTE_SAVE_INTERVAL);
+}
+
 module.exports = {
   startCollab,
   getCollab,
   postCollab,
+  leaveCollab,
   scheduleSave
 };

@@ -293,7 +293,7 @@ const getTags = async (req, res) => {
   res.json({ tagList });
 };
 
-const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuser, authorship) => {
+const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuserId) => {
   try {
     if (doc) {
       const title = doc.firstChild.textContent != '' ? doc.firstChild.textContent : null;
@@ -309,24 +309,18 @@ const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuser, authors
         }
       });
       const tags =  _.uniq(match.map(t => t.slice(1)));
-      const user = await User.findOne({ where: { userid: lastchangeuser.slice(1) } });
-      const lastchangeuserId = user ? user.id : null;
       await updateNoteTags(id, tags);
-      await Note.update({
+      const updateValue = {
         title,
         brief,
         textcontent,
         doc: JSON.stringify(doc.toJSON()),
         comment: JSON.stringify({ data: comments.comments }),
         lastchangeAt,
-        lastchangeuserId,
-        authorship,
         savedAt: Date.now()
-      }, {
-        where: {
-          id
-        }
-      });
+      };
+      if (lastchangeuserId) updateValue.lastchangeuserId = lastchangeuserId;
+      await Note.update(updateValue, { where: { id } });
       return true;
     }
   } catch (e) {

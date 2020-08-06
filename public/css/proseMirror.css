@@ -2,76 +2,7 @@
   display: block; 
  }
 
-.ProseMirror {
- position: relative;
- max-width: 800px;
- margin: 0 auto;
- width: 80%;
-}
-
-.ProseMirror {
- word-wrap: break-word;
- white-space: pre-wrap;
- -webkit-font-variant-ligatures: none;
- font-variant-ligatures: none;
-}
-
-.ProseMirror pre {
- white-space: pre-wrap;
-}
-
-.ProseMirror li {
- position: relative;
-}
-
-.ProseMirror st{
- text-decoration: line-through;
-}
-
-.ProseMirror hashtag{
-  display: inline-block;
-  color: white;
-  background-color: #aaa;
-  padding: 3px 5px;
-  border-radius: 500px;
-  cursor: pointer;
-}
-
-.ProseMirror img{
- max-width: 100%;
-}
-
-.ProseMirror .emoji{
- height: 1rem;
-}
-
-.ProseMirror-hideselection *::selection { background: transparent; }
-.ProseMirror-hideselection *::-moz-selection { background: transparent; }
-.ProseMirror-hideselection { caret-color: transparent; }
-
-.ProseMirror-selectednode {
- outline: 2px solid #8cf;
-}
-
-/* Make sure li selections wrap around markers */
-
-li.ProseMirror-selectednode {
- outline: none;
-}
-
-li.ProseMirror-selectednode:after {
- content: "";
- position: absolute;
- left: -32px;
- right: -2px; top: -2px; bottom: -2px;
- border: 2px solid #8cf;
- pointer-events: none;
-}
-.ProseMirror-textblock-dropdown {
- min-width: 3em;
-}
-
-.ProseMirror-menu {
+ .ProseMirror-menu {
   margin: 0 -4px;
   line-height: 1;
 }
@@ -95,57 +26,6 @@ li.ProseMirror-selectednode:after {
   width: 24px;
   border-bottom: 1px solid #ddd;
   margin: 3px 0;
-}
-
-.ProseMirror-menu-dropdown, .ProseMirror-menu-dropdown-menu {
- font-size: 90%;
- white-space: nowrap;
-}
-
-.ProseMirror-menu-dropdown {
- vertical-align: 1px;
- cursor: pointer;
- position: relative;
- padding-right: 15px;
-}
-
-.ProseMirror-menu-dropdown-wrap {
- padding: 1px 0 1px 4px;
- display: inline-block;
- position: relative;
-}
-
-.ProseMirror-menu-dropdown:after {
- content: "";
- border-left: 4px solid transparent;
- border-right: 4px solid transparent;
- border-top: 4px solid currentColor;
- opacity: .6;
- position: absolute;
- right: 4px;
- top: calc(50% - 2px);
-}
-
-.ProseMirror-menu-dropdown-menu, .ProseMirror-menu-submenu {
- position: absolute;
- background: white;
- color: #666;
- border: 1px solid #aaa;
- padding: 2px;
-}
-
-.ProseMirror-menu-dropdown-menu {
- z-index: 15;
- min-width: 6em;
-}
-
-.ProseMirror-menu-dropdown-item {
- cursor: pointer;
- padding: 2px 8px 2px 4px;
-}
-
-.ProseMirror-menu-dropdown-item:hover {
- background: #f2f2f2;
 }
 
 .ProseMirror-menu-submenu-wrap {
@@ -229,6 +109,75 @@ li.ProseMirror-selectednode:after {
 .ProseMirror-icon span {
  vertical-align: text-top;
 }
+
+.ProseMirror {
+ position: relative;
+ max-width: 800px;
+ margin: 0 auto;
+ width: 80%;
+ word-wrap: break-word;
+ white-space: pre-wrap;
+ -webkit-font-variant-ligatures: none;
+ font-variant-ligatures: none;
+}
+
+.ProseMirror pre {
+ white-space: pre-wrap;
+}
+
+.ProseMirror li {
+ position: relative;
+}
+
+.ProseMirror st{
+ text-decoration: line-through;
+}
+
+.ProseMirror hashtag{
+  display: inline-block;
+  color: white;
+  background-color: #aaa;
+  padding: 3px 5px;
+  border-radius: 500px;
+  cursor: pointer;
+}
+
+.ProseMirror img{
+ max-width: 100%;
+}
+
+.ProseMirror .emoji{
+ height: 1rem;
+}
+
+.ProseMirror-hideselection *::selection { background: transparent; }
+.ProseMirror-hideselection *::-moz-selection { background: transparent; }
+.ProseMirror-hideselection { caret-color: transparent; }
+
+.ProseMirror-selectednode {
+ outline: 2px solid #8cf;
+}
+
+/* Make sure li selections wrap around markers */
+
+li.ProseMirror-selectednode {
+ outline: none;
+}
+
+li.ProseMirror-selectednode:after {
+ content: "";
+ position: absolute;
+ left: -32px;
+ right: -2px; top: -2px; bottom: -2px;
+ border: 2px solid #8cf;
+ pointer-events: none;
+}
+
+.ProseMirror-textblock-dropdown {
+ min-width: 3em;
+}
+
+
 .ProseMirror-gapcursor {
  display: none;
  pointer-events: none;
@@ -350,15 +299,6 @@ li.ProseMirror-selectednode:after {
  display: none;
 }
 
-#editor, .editor {
- background: white;
- color: black;
- background-clip: padding-box;
- padding: 5px 0;
- margin-bottom: 23px;
- height: 100%;
-}
-
 .ProseMirror p:first-child,
 .ProseMirror h1:first-child,
 .ProseMirror h2:first-child,
@@ -466,3 +406,30 @@ li.commentText + li.commentText {
   padding: 3px 5px;
   border-radius: 500px;
 }
+
+.caret{
+  width: 0;
+  display: inline-block;
+  border-left-width: 2px;
+  border-left-style: solid;
+  position: relative;
+}
+
+.caret-user {
+  height: 25px;
+  width: 25px;
+  position: absolute;
+  top: -10px;
+  pointer-events: none;
+  z-index: 20;
+  transform: translate(-50%, -100%);
+}
+
+.caret-user-avatar{
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+}
+

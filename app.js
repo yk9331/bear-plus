@@ -1,9 +1,11 @@
 'use strict';
-require('dotenv').config();
-const { PORT, API_VERSION, SESSION_NAME, SESSION_SECRETE} = process.env;
-const config = require('./server/config/config');
-const path = require('path');
 
+const {
+  NODE_ENV, PORT, PORT_TEST, API_VERSION,
+  SESSION_NAME, SESSION_SECRETE, SESSION_LIFE } = require('./server/config/config');
+const port = NODE_ENV == 'test' ? PORT_TEST : PORT;
+
+const path = require('path');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const passport = require('passport');
@@ -26,18 +28,17 @@ var sessionStore = new SequelizeStore({
 app.use(session({
   name: SESSION_NAME,
   secret: SESSION_SECRETE,
-  resave: false, // don't save session if unmodified
-  saveUninitialized: true, // always create session to ensure the origin
-  rolling: true, // reset maxAge on every response
+  resave: false,
+  saveUninitialized: true,
+  rolling: true,
   cookie: {
-    maxAge: config.SESSION_LIFE
+    maxAge: SESSION_LIFE
   },
   store: sessionStore
 }));
 
 // Setup Socket
 const io = realtime.initSocket(server, sessionStore);
-
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -47,7 +48,10 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
-app.use('/', express.static(path.join(__dirname, '/public')));
+
+// Front-End Assets
+app.use('/build', express.static(path.join(__dirname, '/public/build')));
+app.use('/img', express.static(path.join(__dirname, '/public/img')));
 
 // Setup Passport
 app.use(passport.initialize());
@@ -77,5 +81,5 @@ app.use((err, req, res, next) => {
 
 // Server Listen
 models.sequelize.sync().then(function () {
-  server.listen(PORT, () => { console.log(`Listening on port: ${PORT}`); });
+  server.listen(port, () => { console.log(`Listening on port: ${port}`); });
 });

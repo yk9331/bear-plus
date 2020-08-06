@@ -15,7 +15,8 @@ import { baseKeymap } from 'prosemirror-commands';
 
 import { schema } from './schema';
 import { Reporter } from './reporter';
-import { commentPlugin, commentUI} from './comment';
+import { commentPlugin, commentUI } from './comment';
+import { cursorsPlugin } from './cursor';
 
 import { CodeBlockView, arrowHandler } from './codeBlockView';
 import { keymap } from 'prosemirror-keymap';
@@ -23,6 +24,7 @@ const _ = require('lodash');
 import { buildMenuItems } from './menu';
 const report = new Reporter();
 let menu = buildMenuItems(schema);
+app.cursors = {};
 class State {
   constructor(edit, comm) {
     this.edit = edit;
@@ -92,9 +94,8 @@ const insertText = function (text = '') {
 };
 
 class EditorConnection {
-  constructor(report, url, editable) {
+  constructor(report, editable) {
     this.report = report;
-    this.url = url;
     this.state = new State(null, 'start');
     this.request = null;
     this.backOff = 0;
@@ -136,9 +137,10 @@ class EditorConnection {
           gapCursor(),
           menuBar({content: menu.fullMenu}),
           history({preserveItems: true}),
-          collab({version: action.version,clientID:app.userId}),
+          collab({version: action.version, clientID: action.clientID}),
           commentPlugin,
           commentUI(transaction => this.dispatch({ type: 'transaction', transaction })),
+          cursorsPlugin(action.clientID,action.clientColor),
           arrowHandlers,
           imageUploader({
             async upload(fileOrUrl, view) {
@@ -279,7 +281,7 @@ app.newEditor = function (noteId, editable) {
   if (app.connection) app.connection.close();
   app.socket.emit('open note', { noteId });
   $('#button-container').css('display', 'block');
-  app.connection = new EditorConnection(report, '/api/1.0/' + noteId, editable);
+  app.connection = new EditorConnection(report, editable);
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
   return true;
@@ -416,8 +418,9 @@ app.socket.on('collab started', (data) => {
     type: 'loaded',
     doc: schema.nodeFromJSON(data.doc),
     version: data.version,
-    users: data.users,
-    comments: { version: data.commentVersion, comments: data.comments }
+    comments: { version: data.commentVersion, comments: data.comments },
+    clientID: data.clientID,
+    clientColor: data.clientColor
   });
   app.connection.view.focus();
   setCounts(app.view.state.doc);
@@ -443,6 +446,31 @@ app.socket.on('collab updated', (data) => {
     if (data.steps && (data.steps.length || data.comment.length)) {
       let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
       tr.setMeta(commentPlugin, {type: 'receive', version: data.commentVersion, events: data.comment, sent: 0});
+      app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
+      app.connection.view.focus();
+    }
+  }
+});
+
+app.socket.on('cursor updated', ({pos}) => {
+  if (pos) {
+    app.cursors[pos.userId] = pos;
+    if (app.cursors) {
+      let tr = app.connection.state.edit.tr;
+      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
+      app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
+      app.connection.view.focus();
+    }
+  }
+});
+
+app.socket.on('delete cursor', ({ userId }) => {
+  if (userId) {
+    delete app.cursors[userId];
+    console.log(app.cursors);
+    if (app.cursors) {
+      let tr = app.connection.state.edit.tr;
+      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
       app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
       app.connection.view.focus();
     }
