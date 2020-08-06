@@ -9,7 +9,7 @@ const { Mapping } = require('prosemirror-transform');
 
 const { Note, Author } = require('../models');
 const { saveNote } = require('./note_controller');
-const { Comments } = require('./comment_controller');
+const { Comment, Comments } = require('./comment_controller');
 
 const instances = Object.create(null);
 
@@ -25,6 +25,7 @@ class Instance {
     this.lastActive = Date.now();
     this.saveTimeout = null;
     this.note = note;
+    this.lastUser = null;
     this.onlineUsers = {};
     this.authors = {};
     note.authors.forEach((a) => {
@@ -56,6 +57,7 @@ class Instance {
   // add events to master document
   addEvents(version, steps, comments, clientID) {
     this.checkVersion(version);
+    this.lastUser = clientID;
     if (this.version != version) return false;
     let doc = this.doc, maps = [];
     for (let i = 0; i < steps.length; i++) {
@@ -79,12 +81,11 @@ class Instance {
         this.comments.created(event);
     }
     this.lastActive = Date.now();
-    return {version: this.version, commentVersion: this.comments.version};
+    return { version: this.version, commentVersion: this.comments.version };
   }
 
   async close() {
-    const lastUser = this.steps.length > 0 ? this.steps[this.steps.length - 1].clientID: null;
-    await saveNote(this.id, this.doc, this.comments, this.lastActive, lastUser);
+    await saveNote(this.id, this.doc, this.comments, this.lastActive, this.lastUser);
     if (this.setTimeout) clearTimeout(this.setTimeout);
     delete instances[this.id];
   }
@@ -187,8 +188,7 @@ async function scheduleSave (noteId, cb) {
   inst.saveTimeout = setTimeout(async () => {
     try {
       inst.saveTimeout = null;
-      const lastUser = inst.steps[inst.steps.length - 1].clientID;
-      const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, lastUser);
+      const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, inst.lastUser);
       if (saved) {
         cb(inst.id);
       }

@@ -108,6 +108,7 @@ class EditorConnection {
   dispatch(action) {
     let newEditState = null;
     if (action.type == 'loaded') {
+      this.clientID = action.clientID;
       let editState = EditorState.create({
         doc: action.doc,
         plugins: [
@@ -246,7 +247,7 @@ class EditorConnection {
       version: getVersion(editState),
       commentVersion: commentPlugin.getState(this.state.edit).version,
       steps: steps ? steps.steps.map(s => s.toJSON()) : [],
-      clientID: steps ? steps.clientID : 0,
+      clientID: this.clientID,
       comment: comments || []
     });
   }
