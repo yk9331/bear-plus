@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const { Op } = require('sequelize');
 const { Note, User, Tag } = require('../models');
+const { updateNoteTags } = require('./tag_controller');
 const response = require('../response');
 
 const uploadImage = async (req, res) => {
@@ -16,6 +17,7 @@ const createNewNote = async (req, res) => {
   }
   const permission = req.body.currentPermission == '' ? 'private' : req.body.currentPermission;
   const tag = req.body.currentTag == '' ? null : await Tag.findByPk(req.body.currentTag);
+  // Create default document
   const doc = tag ? {
     type: 'doc',
     content: [
@@ -37,42 +39,11 @@ const createNewNote = async (req, res) => {
     doc: JSON.stringify(doc),
     brief: text,
     content: text,
-    ownerId: req.user.id,
+    owner_id: req.user.id,
     view_permission: permission
   });
-  const whereStament = {
-    state: 'normal',
-    ownerId: req.user.id
-  };
-  if (req.body.currentPermission !== '') {
-    whereStament.view_permission = req.body.currentPermission;
-  }
-  let noteList;
-  if (tag) {
-    await note.addTag(tag);
-    noteList = await Note.findAll({
-      where: whereStament,
-      order: [
-        ['pinned', 'DESC'],
-        ['updatedAt', 'DESC'],
-      ],
-      include: [{
-        model: Tag,
-        where: {
-          id: tag.id
-        }
-      }]
-    });
-  } else {
-    noteList = await Note.findAll({
-      where: whereStament,
-      order: [
-        ['pinned', 'DESC'],
-        ['updatedAt', 'DESC'],
-      ],
-    });
-  }
-  res.json({ noteId: note.id, noteUrl: note.shortid, noteList});
+  if (tag) await note.addTag(tag);
+  res.status(200).json({ note });
 };
 
 const updateNoteInfo = async (req, res) => {
@@ -85,10 +56,10 @@ const updateNoteInfo = async (req, res) => {
   switch (action) {
     case 'pin':
     case 'unpin':
-      await Note.update({ pinned: action == 'pin', }, {
+      await Note.update({ pin: action == 'pin', }, {
         where: {
           id: noteId,
-          ownerId: userId
+          owner_id: userId
         }
       });
       break;
@@ -96,7 +67,7 @@ const updateNoteInfo = async (req, res) => {
       await Note.update({ state: 'normal', }, {
         where: {
           id: noteId,
-          ownerId: userId
+          owner_id: userId
         }
       });
       break;
@@ -104,7 +75,7 @@ const updateNoteInfo = async (req, res) => {
       await Note.update({ state: 'trash', }, {
         where: {
           id: noteId,
-          ownerId: userId
+          owner_id: userId
         }
       });
       break;
@@ -112,7 +83,7 @@ const updateNoteInfo = async (req, res) => {
       await Note.update({ state: 'archive', }, {
         where: {
           id: noteId,
-          ownerId: userId
+          owner_id: userId
         }
       });
       break;
@@ -120,7 +91,7 @@ const updateNoteInfo = async (req, res) => {
       await Note.destroy({
         where: {
           id: noteId,
-          ownerId: userId
+          owner_id: userId
         }
       });
       break;
@@ -128,18 +99,16 @@ const updateNoteInfo = async (req, res) => {
 
   const whereStament = {
     state: currentType,
-    ownerId: userId
+    owner_id: userId
   };
-
   if (currentPermission !== '') {
     whereStament.view_permission = currentPermission;
   }
-
   const noteList = await Note.findAll({
       where: whereStament,
       order: [
-        ['pinned', 'DESC'],
-        ['updatedAt', 'DESC'],
+        ['pin', 'DESC'],
+        ['updated_at', 'DESC'],
       ],
     });
   res.json({ noteList });
@@ -149,25 +118,24 @@ const updateNoteUrl = async (req, res) => {
   if (!req.isAuthenticated()) {
     return response.errorForbidden(req, res);
   }
-  const { noteId, shortUrl } = req.body;
+  const { noteId, noteUrl } = req.body;
   const result = await Note.findOne({
     where: {
-      ownerId: req.user.id,
-      shortid: shortUrl
+      owner_id: req.user.id,
+      note_url: noteUrl
     }
   });
   if (result) {
     return res.status(400).json({ error: 'duplicate' });
   } else {
     await Note.update({
-      shortid: shortUrl
+      note_url: noteUrl
     }, {
       where: {
         id: noteId
       }
-    }
-    );
-    return res.status(200).json({ noteId, shortUrl });
+    });
+    return res.status(200).json({ noteId, noteUrl });
   }
 };
 
@@ -185,31 +153,31 @@ const updateNotePermission = async (req, res) => {
     }
   });
   const note = await Note.findOne({ where: { id: noteId } });
-  req.io.to(noteId).emit('update note info', note);
+  req.io.to(noteId).emit('update note info', { note });
   res.status(200).json({ noteId, view, write });
 };
 
 const getNotes = async (req, res) => {
-  const profileId = req.query.profileId.replace('@', '');
+  const profileUrl = req.query.profileUrl.replace('@', '');
   const type = req.query.type || 'normal';
   const permission = req.query.permission;
   let tag = req.query.tag;
-  const userId = req.user ? req.user.userid : null;
+  const userUrl = req.user ? req.user.user_url : null;
   const keyword = req.query.keyword || null;
   let noteList = null;
-  if (profileId == userId) {
+  if (profileUrl == userUrl) {
     const whereStament = {
-      ownerId: req.user.id,
+      owner_id: req.user.id,
       state: type,
     };
     if (permission != '') whereStament.view_permission = permission;
-    if (keyword) whereStament.textcontent = { [Op.substring]: keyword };
+    if (keyword) whereStament.text_content = { [Op.substring]: keyword };
     if (tag != '') {
       noteList = await Note.findAll({
         where: whereStament,
         order: [
-          ['pinned', 'DESC'],
-          ['updatedAt', 'DESC'],
+          ['pin', 'DESC'],
+          ['updated_at', 'DESC'],
         ],
         include: [{
           model: Tag,
@@ -222,34 +190,34 @@ const getNotes = async (req, res) => {
       noteList = await Note.findAll({
         where: whereStament,
         order: [
-          ['pinned', 'DESC'],
-          ['updatedAt', 'DESC'],
+          ['pin', 'DESC'],
+          ['updated_at', 'DESC'],
         ],
       });
     }
   } else {
-    const userId = await User.findOne({ where: { userid: profileId } });
+    const profileUser = await User.findOne({ where: { user_url: profileUrl } });
     const whereStament = {
       view_permission: 'public',
       state: 'normal',
-      ownerId: userId.id
+      owner_id: profileUser.id
     };
-    if (keyword) whereStament.textcontent = { [Op.substring]: keyword };
+    if (keyword) whereStament.text_content = { [Op.substring]: keyword };
     if (tag != '') {
       const tagResult = await Tag.findByPk(tag);
       noteList = await tagResult.getNotes({
         where: whereStament,
         order: [
-          ['pinned', 'DESC'],
-          ['updatedAt', 'DESC'],
+          ['pin', 'DESC'],
+          ['updated_at', 'DESC'],
         ],
       });
     } else {
       noteList = await Note.findAll({
         where: whereStament,
         order: [
-          ['pinned', 'DESC'],
-          ['updatedAt', 'DESC'],
+          ['pin', 'DESC'],
+          ['updated_at', 'DESC'],
         ],
       });
     }
@@ -257,48 +225,13 @@ const getNotes = async (req, res) => {
   res.json({ noteList });
 };
 
-const getTags = async (req, res) => {
-  const profileId = req.query.profileId.replace('@', '');
-  const userId = req.user ? req.user.userid : null;
-  let tagList = null;
-  if (profileId == userId) {
-    tagList = await Tag.findAll({
-      include: [{
-        model: Note,
-        where: {
-          ownerId: req.user.id,
-          state: 'normal'
-        }
-      }],
-      order: [
-        ['tag', 'ASC']
-      ]
-    });
-  } else {
-    const userId = await User.findOne({ where: { userid: profileId } });
-    tagList = await Tag.findAll({
-      include: [{
-        model: Note,
-        where: {
-          ownerId: userId.id,
-          view_permission: 'public',
-          state: 'normal'
-        }
-      }],
-      order: [
-        ['tag', 'ASC']
-      ]
-    });
-  }
-  res.json({ tagList });
-};
 
-const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuserId) => {
+
+const saveNote = async (id, doc, comments, lastchangeAt, lastchangeUserId) => {
   try {
     if (doc) {
       const title = doc.firstChild.textContent != '' ? doc.firstChild.textContent : null;
       const brief = doc.textContent != '' ? doc.textContent.slice(doc.firstChild.textContent.length, 200) : null;
-      const textcontent = doc.textContent;
       const regexp = new RegExp('(?:^)?#[\\w-]+', 'g');
       let match = [];
       doc.forEach((node, offset, index) => {
@@ -313,13 +246,13 @@ const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuserId) => {
       const updateValue = {
         title,
         brief,
-        textcontent,
+        text_content: doc.textContent,
         doc: JSON.stringify(doc.toJSON()),
         comment: JSON.stringify({ data: comments.comments }),
-        lastchangeAt,
-        savedAt: Date.now()
+        lastchange_at: lastchangeAt,
+        saved_at: Date.now()
       };
-      if (lastchangeuserId) updateValue.lastchangeuserId = lastchangeuserId;
+      if (lastchangeUserId) updateValue.lastchange_user_id = lastchangeUserId;
       await Note.update(updateValue, { where: { id } });
       return true;
     }
@@ -329,26 +262,10 @@ const saveNote = async (id, doc, comments, lastchangeAt, lastchangeuserId) => {
   }
 };
 
-const updateNoteTags = async (id, tags) => {
-  const note = await Note.findOne({ where: { id } });
-  const newList = [];
-  for (let t of tags) {
-    const [tag] = await Tag.findOrCreate({ where: { tag: t } });
-    newList.push(tag);
-  }
-  const oldList = await note.getTags();
-  const del = _.differenceBy(oldList, newList, 'id');
-  const add = _.differenceBy(newList, oldList, 'id');
-  if (del != []) await note.removeTags(del);
-  if (add != []) await note.addTags(add);
-  return newList;
-};
-
 module.exports = {
   uploadImage,
   createNewNote,
   getNotes,
-  getTags,
   updateNoteInfo,
   updateNoteUrl,
   updateNotePermission,

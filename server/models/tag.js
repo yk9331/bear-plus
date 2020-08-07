@@ -11,11 +11,14 @@ module.exports = (sequelize, DataTypes) => {
     tag: {
       type: DataTypes.TEXT,
     },
+  }, {
+    updatedAt: 'updated_at',
+    createdAt: 'created_at',
   });
 
   Tag.associate = function (models) {
     Tag.belongsToMany(models.Note, {
-      through: 'NoteTags',
+      through: 'Note_Tag',
     });
   };
   return Tag;

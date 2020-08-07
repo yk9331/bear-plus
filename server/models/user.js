@@ -11,29 +11,26 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       defaultValue: Sequelize.UUIDV4
     },
-    userid: {
+    user_url: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
       defaultValue: shortId.generate
     },
-    profileid: {
+    profile_id: {
       type: DataTypes.STRING,
       unique: true
     },
     profile: {
       type: DataTypes.TEXT
     },
-    history: {
+    access_token: {
       type: DataTypes.TEXT
     },
-    accessToken: {
+    refresh_token: {
       type: DataTypes.TEXT
     },
-    refreshToken: {
-      type: DataTypes.TEXT
-    },
-    deleteToken: {
+    delete_token: {
       type: DataTypes.UUID,
       defaultValue: Sequelize.UUIDV4
     },
@@ -46,6 +43,9 @@ module.exports = (sequelize, DataTypes) => {
     password: {
       type: Sequelize.TEXT
     }
+  }, {
+    updatedAt: 'updated_at',
+    createdAt: 'created_at',
   });
 
   User.hashPassword = async function (plain) {
@@ -71,11 +71,11 @@ module.exports = (sequelize, DataTypes) => {
 
   User.associate = function (models) {
     User.hasMany(models.Note, {
-      foreignKey: 'ownerId',
+      foreignKey: 'owner_id',
       constraints: false
     });
     User.hasMany(models.Note, {
-      foreignKey: 'lastchangeuserId',
+      foreignKey: 'lastchange_user_id',
       constraints: false
     });
   };
@@ -84,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
     if (!user) {
       return null;
     }
-    return user.profileid ? User.parseProfile(user.profile) : User.parseProfileByEmail(user);
+    return user.profile_id ? User.parseProfile(user.profile) : User.parseProfileByEmail(user);
   };
 
   User.parseProfile = function (profile) {

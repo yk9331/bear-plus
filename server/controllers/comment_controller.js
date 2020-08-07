@@ -1,3 +1,5 @@
+'use strict';
+
 class Comment {
   constructor(from, to, text, id) {
     this.from = from;

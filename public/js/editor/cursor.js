@@ -1,4 +1,4 @@
-
+/* global app, _:true */
 import { Plugin } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 
@@ -50,7 +50,6 @@ class userSelectionState {
   constructor(view, clientId, clientColor) {
     this.clientId = clientId;
     this.clientColor = clientColor;
-    console.log(this.clientColor, this.clientId);
     this.update(view, null);
   }
 

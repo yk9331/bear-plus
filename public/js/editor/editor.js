@@ -297,7 +297,7 @@ $('#note-shortUrl-input').on('input',() => {
 $('#note-shortUrl-copy').click((e) => {
   e.preventDefault();
   const url = $('#note-shortUrl-input').val() == '' ? $('#note-shortUrl-input').attr('noteUrl') : $('#note-shortUrl-input').val();
-  const temp = $('<input>').val(`${document.location.hostname}/${app.profileId}/${url}`);
+  const temp = $('<input>').val(`${document.location.hostname}/${app.profileUrl}/${url}`);
   $('body').append(temp);
   temp.select();
   document.execCommand('copy');
@@ -308,10 +308,10 @@ $('#note-shortUrl-save').click((e) => {
   e.preventDefault();
   const data = {
     noteId: app.currentNote,
-    shortUrl: $('#note-shortUrl-input').val()
+    noteUrl: $('#note-shortUrl-input').val()
   };
   fetch('/api/1.0/note/url', {
-    method: 'POST',
+    method: 'PATCH',
     body: JSON.stringify(data),
     headers: {
       'content-type': 'application/json'
@@ -339,7 +339,7 @@ function changeNotePermission(read, write) {
     write
   };
   fetch('/api/1.0/note/permission', {
-    method: 'POST',
+    method: 'PATCH',
     body: JSON.stringify(data),
     headers: {
       'content-type': 'application/json'
@@ -384,7 +384,7 @@ function setCounts(doc) {
 
 app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) => {
   if (note) {
-    $('#note-shortUrl-input').attr('placeholder', note.shortid).attr('noteurl', note.shortid).val('');
+    $('#note-shortUrl-input').attr('placeholder', note.note_url).attr('noteurl', note.note_url).val('');
     $('#permission-read').val(note.view_permission);
     $('#permission-write').val(note.write_permission);
     $('.note-tab.current').children('.info').children('.title').text(note.title);
@@ -399,8 +399,8 @@ app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) =>
       }
     }
     app.fetchTags();
-    const savedAt = note.savedAt ? new Date(note.savedAt) : new Date(note.createdAt);
-    const createdAt = new Date(note.createdAt);
+    const savedAt = note.saved_at ? new Date(note.saved_at) : new Date(note.created_at);
+    const createdAt = new Date(note.created_at);
     const saveTime = savedAt.toLocaleString('default', { month: 'short', year: 'numeric' }).toUpperCase() + ' ' + ('0' + savedAt.getHours()).substr(-2) + ':' + ('0' + savedAt.getMinutes()).substr(-2);
     const createTime = createdAt.toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase() + ' AT ' + ('0' + createdAt.getHours()).substr(-2) + ':' + ('0' + createdAt.getMinutes()).substr(-2);
     $('#saved-at').children('.date').text(savedAt.getDate());
@@ -468,7 +468,6 @@ app.socket.on('cursor updated', ({pos}) => {
 app.socket.on('delete cursor', ({ userId }) => {
   if (userId) {
     delete app.cursors[userId];
-    console.log(app.cursors);
     if (app.cursors) {
       let tr = app.connection.state.edit.tr;
       tr.setMeta(cursorsPlugin, Object.values(app.cursors));

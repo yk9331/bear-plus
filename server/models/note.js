@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       defaultValue: Sequelize.UUIDV4
     },
-    shortid: {
+    note_url: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: shortId.generate
@@ -39,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
     brief: {
       type: DataTypes.TEXT,
     },
-    textcontent: {
+    text_content: {
       type: DataTypes.TEXT,
     },
     doc: {
@@ -51,10 +51,10 @@ module.exports = (sequelize, DataTypes) => {
     authorship: {
       type: DataTypes.TEXT('long'),
     },
-    lastchangeAt: {
+    lastchange_at: {
       type: DataTypes.DATE
     },
-    savedAt: {
+    saved_at: {
       type: DataTypes.DATE
     },
     state: {
@@ -62,43 +62,41 @@ module.exports = (sequelize, DataTypes) => {
       values: stateTypes,
       defaultValue: 'normal'
     },
-    pinned: {
+    pin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     }
   }, {
     indexes: [
       {
-          unique: true,
-          fields: ['ownerId', 'shortid']
+        unique: true,
+        fields: ['owner_id', 'note_url']
       }
-  ]
+      ],
+      updatedAt: 'updated_at',
+      createdAt: 'created_at',
   });
 
   Note.associate = function (models) {
     Note.belongsTo(models.User, {
-      foreignKey: 'ownerId',
+      foreignKey: 'owner_id',
       as: 'owner',
       constraints: false,
       onDelete: 'CASCADE',
       hooks: true
     });
     Note.belongsTo(models.User, {
-      foreignKey: 'lastchangeuserId',
-      as: 'lastchangeuser',
-      constraints: false
-    });
-    Note.hasMany(models.Revision, {
-      foreignKey: 'noteId',
+      foreignKey: 'lastchange_user_id',
+      as: 'lastchange_user',
       constraints: false
     });
     Note.hasMany(models.Author, {
-      foreignKey: 'noteId',
+      foreignKey: 'note_id',
       as: 'authors',
       constraints: false
     });
     Note.belongsToMany(models.Tag, {
-      through: 'NoteTags',
+      through: 'Note_Tag',
     });
   };
   return Note;

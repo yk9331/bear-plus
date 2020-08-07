@@ -17,7 +17,7 @@ $('#signin-form').on('submit', (e) => {
       if (body.error) {
         $('#signin-help').css('display', 'block').text(body.error);
       } else {
-        document.location.href = `/@${body.userId}`;
+        document.location.href = `/@${body.userUrl}`;
       }
     });
 });
@@ -42,7 +42,7 @@ $('#signup-form').on('submit', (e) => {
       if (body.error) {
         $('#signup-help').css('display', 'block').text(body.error);
       } else {
-        document.location.href = `/@${body.userId}`;
+        document.location.href = `/@${body.userUrl}`;
       }
     });
 });

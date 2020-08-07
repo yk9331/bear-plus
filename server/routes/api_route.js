@@ -8,6 +8,7 @@ const noteImageUpload = imageS3Upload.fields([{ name: 'image', maxCount: 1 }]);
 const avatarS3Upload = upload(S3_USER_AVATAR_PATH);
 const avatarImageUpload = avatarS3Upload.fields([{ name: 'avatar', maxCount: 1 }]);
 
+
 const {
   register,
   emailAuthenticate,
@@ -19,10 +20,12 @@ const {
   uploadImage,
   createNewNote,
   getNotes,
-  getTags,
   updateNoteInfo,
   updateNoteUrl,
   updateNotePermission } = require('../controllers/note_controller');
+
+const {
+  getTags } = require('../controllers/tag_controller');
 
 const {
   getUserSetting,
@@ -73,13 +76,13 @@ router.route('/note')
   .post(createNewNote);
 
 router.route('/note/url')
-  .post(updateNoteUrl);
+  .patch(updateNoteUrl);
 
 router.route('/note/permission')
-  .post(updateNotePermission);
+  .patch(updateNotePermission);
 
 router.route('/note/:action')
-  .post(updateNoteInfo);
+  .patch(updateNoteInfo);
 
 // Editor
 router.route('/editor/image')

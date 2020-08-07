@@ -19,8 +19,8 @@ const onAuthorizeFail = (data, msg, err, accept) => {
 };
 
 const updateNoteInfo = async (noteId) => {
-  const note = await Note.findOne({ where: { id: noteId }, include: [{ model: Tag, attributes: ['id'] }, 'lastchangeuser'] });
-  const lastChangeUser = User.getProfile(note.lastchangeuser);
+  const note = await Note.findOne({ where: { id: noteId }, include: [{ model: Tag, attributes: ['id'] }, 'lastchange_user'] });
+  const lastChangeUser = User.getProfile(note.lastchange_user);
   const onlineUserCount = realtime.io.sockets.adapter.rooms[noteId].length;
   realtime.io.to(noteId).emit('update note info', {note, lastChangeUser, onlineUserCount});
 };

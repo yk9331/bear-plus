@@ -8,98 +8,86 @@ const { NODE_ENV, API_VERSION, LOCAL_SERVER_URL, SERVER_URL, FACEBOOK_ID, FACEBO
 const serverULR = NODE_ENV === 'development' ? LOCAL_SERVER_URL : SERVER_URL;
 const { User } = require('../models');
 
-const passportGeneralCallback = function callback (accessToken, refreshToken, profile, done) {
-  var stringifiedProfile = JSON.stringify(profile);
-  User.findOrCreate({
-    where: {
-      profileid: profile.id.toString()
-    },
-    defaults: {
-      profile: stringifiedProfile,
-      accessToken: accessToken,
-      refreshToken: refreshToken
-    }
-  }).then(function (result) {
-    const [user] = result;
-    if (user) {
-      var needSave = false;
-      if ( user.profile.provider != 'updated' && user.profile !== stringifiedProfile) {
-        user.profile = stringifiedProfile;
-        needSave = true;
-      }
-      if (user.accessToken !== accessToken) {
-        user.accessToken = accessToken;
-        needSave = true;
-      }
-      if (user.refreshToken !== refreshToken) {
-        user.refreshToken = refreshToken;
-        needSave = true;
-      }
-      if (needSave) {
-        user.save().then(function () {
-          return done(null, user);
-        });
-      } else {
-        return done(null, user);
-      }
-    }
-  }).catch(function (err) {
-    return done(err, null);
-  });
-};
-
 passport.serializeUser(function (user, done) {
   return done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-  User.findOne({
-    where: {
-      id: id
-    }
-  }).then(function (user) {
-    // Don't die on non-existent user
-    if (user == null) {
+passport.deserializeUser(async function (id, done) {
+  try {
+    const user = await User.findByPk(id);
+    if (!user) {
       return done(null, false, { message: 'Invalid UserID' });
+    } else {
+      return done(null, user);
     }
-    return done(null, user);
-  }).catch(function (err) {
+  } catch (err) {
     return done(err, null);
-  });
+  }
 });
 
 passport.use(new LocalStrategy({
   usernameField: 'email'
 }, async function (email, password, done) {
-  if (!validator.isEmail(email)) return done(null, false, 'Email formate not correct.');
   try {
-    const user = await User.findOne({
-      where: {
-        email: email
-      }
-    });
+    const user = await User.findOne({ where: { email: email } });
     if (!user) return done(null, false, 'Email not found, please try to sign up.');
     if (!await user.verifyPassword(password)) return done(null, false, 'Wrong password, please try again');
     return done(null, user);
   } catch (err) {
-    return done(err);
+    return done(err, null);
   }
 }));
+
+const passportCallback = async (accessToken, refreshToken, profile, done) => {
+  var stringifiedProfile = JSON.stringify(profile);
+  try {
+    const [user, created] = await User.findOrCreate({
+      where: {
+        profile_id: profile.id.toString()
+      },
+      defaults: {
+        profile: stringifiedProfile,
+        access_token: accessToken,
+        refresh_token: refreshToken
+      }
+    });
+    if (!created) {
+      let needSave = false;
+      if (user.profile.provider != 'updated' && user.profile !== stringifiedProfile) {
+        user.profile = stringifiedProfile;
+        needSave = true;
+      }
+      if (user.access_token !== accessToken) {
+        user.access_token = accessToken;
+        needSave = true;
+      }
+      if (user.refresh_token !== refreshToken) {
+        user.refresh_token = refreshToken;
+        needSave = true;
+      }
+      if (needSave) {
+        await user.save();
+        return done(null, user);
+      }
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err, null);
+  }
+};
 
 passport.use(new FacebookStrategy({
   clientID: FACEBOOK_ID,
   clientSecret: FACEBOOK_SECRET,
   callbackURL: `${serverULR}/api/${API_VERSION}/auth/facebook/callback`
-}, passportGeneralCallback));
+}, passportCallback));
 
 async function register(req, res, next) {
   if (!req.body.email || !req.body.password || !req.body.username) {
     return res.json({ error: 'Username, email and password are required.' });
   }
   if (!validator.isEmail(req.body.email)) return res.json({error: 'Email formate not correct.'});
-  const profile = {
-    username: encodeURIComponent(req.body.username)
-  };
+  const profile = { username: encodeURIComponent(req.body.username) };
   try {
     const [user, created] = await User.findOrCreate({
       where: {
@@ -110,7 +98,6 @@ async function register(req, res, next) {
         profile: JSON.stringify(profile)
       }
     });
-
     if (!user) {
       return res.json({ error: 'System error, please try again later.' });
     }
@@ -120,7 +107,7 @@ async function register(req, res, next) {
       return res.json({ error: 'This email has been used, please try another one.' });
     }
   } catch (err) {
-    console.log(err);
+    console.log('register error:', err);
     return res.json({ error: 'System error, please try again later.' });
   }
 }
@@ -133,7 +120,7 @@ function emailAuthenticate(req, res, next) {
     if (!user) return res.json({ error: info });
     req.logIn(user, function(err) {
       if (err) { return res.json({ error: 'System error, please try again later.' });}
-      return res.json({ userId: user.userid });
+      return res.json({ userUrl: user.user_url });
     });
   })(req, res, next);
 }
@@ -149,7 +136,7 @@ function facebookCallback(req, res, next) {
 }
 
 function signinRedirect(req, res) {
-  res.redirect(`/@${req.user.userid}`);
+  res.redirect(`/@${req.user.user_url}`);
 }
 
 module.exports = {

@@ -16,9 +16,9 @@ const instances = Object.create(null);
 // A collaborative editing document instance.
 class Instance {
   constructor(note) {
-    const comment = note.comment ? JSON.parse(note.comment).data : null;
     this.id = note.id;
     this.doc = note.doc ? schema.nodeFromJSON(JSON.parse(note.doc)) : null;
+    const comment = note.comment ? JSON.parse(note.comment).data : null;
     this.comments = comment ? new Comments(comment.map(c => Comment.fromJSON(c))) : new Comments;
     this.version = 0;
     this.steps = [];
@@ -29,11 +29,11 @@ class Instance {
     this.onlineUsers = {};
     this.authors = {};
     note.authors.forEach((a) => {
-      this.authors[a.userId] = a.color;
+      this.authors[a.user_id] = a.color;
     });
-    console.log(this.authors);
   }
 
+  // Check collab version is valid
   checkVersion(version) {
     if (version < 0 || version > this.version) {
       let err = new Error('Invalid version ' + version);
@@ -54,7 +54,7 @@ class Instance {
             comment: this.comments.eventsAfter(commentStartIndex)};
   }
 
-  // add events to master document
+  // Add events to master document
   addEvents(version, steps, comments, clientID) {
     this.checkVersion(version);
     this.lastUser = clientID;
@@ -85,9 +85,13 @@ class Instance {
   }
 
   async close() {
-    await saveNote(this.id, this.doc, this.comments, this.lastActive, this.lastUser);
-    if (this.setTimeout) clearTimeout(this.setTimeout);
-    delete instances[this.id];
+    try {
+      await saveNote(this.id, this.doc, this.comments, this.lastActive, this.lastUser);
+      if (this.setTimeout) clearTimeout(this.setTimeout);
+      delete instances[this.id];
+    } catch (err) {
+      console.log('close instance error', err);
+    }
   }
 }
 
@@ -155,12 +159,12 @@ const postCollab = async function (data) {
     const color = inst.onlineUsers[data.clientID];
     await Author.findOrCreate({
       where: {
-        noteId: data.noteId,
-        userId: data.clientID
+        note_id: data.noteId,
+        user_id: data.clientID
       },
       defaults: {
-        noteId: data.noteId,
-        userId: data.clientID,
+        note_id: data.noteId,
+        user_id: data.clientID,
         color: color
       }
       });
@@ -192,8 +196,8 @@ async function scheduleSave (noteId, cb) {
       if (saved) {
         cb(inst.id);
       }
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      console.log(err);
     }
   }, NOTE_SAVE_INTERVAL);
 }

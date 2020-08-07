@@ -32,7 +32,7 @@ function updateNoteInfo(e, action) {
     currentPermission: app.currentPermission
   };
   fetch(`/api/1.0/note/${action}`, {
-    method: 'POST',
+    method: 'PATCH',
     body: JSON.stringify(data),
     headers: {
       'content-type': 'application/json'
@@ -59,14 +59,15 @@ $('#new-note').click(() => {
       },
     })
     .then(res => res.json())
-    .then(({ noteId, noteList }) => {
+    .then(({ note }) => {
       if (app.view !== null) {
         app.view.destroy();
         app.view = null;
       }
       $('.note-tab.current').removeClass('current');
-      app.currentNote = noteId;
-      createNotes(noteList, 'normal');
+      app.currentNote = note.id;
+      createNote(note);
+      app.newEditor(note.id, true);
     });
 });
 
@@ -97,6 +98,30 @@ $('#notes').click((e) => {
   }
 });
 
+function createNote(note) {
+    const pinBtn = note.pin ?
+      $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
+      $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
+    const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
+    const archiveBtn = $('<span>').text('archive').addClass('archive material-icons-outlined').click(archiveNote);
+    const info = $('<div>').addClass('info');
+    const title = $('<div>').addClass('title').attr('disabled', 'true');
+    const brief = $('<div>').addClass('brief').attr('disabled', 'true');
+    if (note.title !== null) {
+      title.text(note.title).removeClass('empty');
+    }
+    if (note.brief !== null) {
+      brief.text(note.brief);
+    }
+    if (note.title == null && note.brief == null) {
+      title.text('A wonderful new note').addClass('empty');
+      brief.text('Keep calm and write something');
+    }
+    info.append(title).append(brief);
+    const noteTab = $('<div>').addClass('note-tab').attr('noteId', note.id).attr('write_permission', note.write_permission).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn).addClass('current');
+    $('#notes').prepend(noteTab);
+}
+
 function createNotes(noteList, type) {
   $('#notes').empty();
   let inList = false;
@@ -104,8 +129,8 @@ function createNotes(noteList, type) {
     case 'normal': {
       for (let i = 0; i < noteList.length; i++){
         let noteTab;
-        if (app.profileId == app.userId) {
-          const pinBtn = noteList[i].pinned ?
+        if (app.profileUrl == app.userUrl) {
+          const pinBtn = noteList[i].pin ?
             $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
             $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
           const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
@@ -114,7 +139,7 @@ function createNotes(noteList, type) {
           const title = $('<div>').addClass('title').attr('disabled', 'true');
           const brief = $('<div>').addClass('brief').attr('disabled', 'true');
           if (noteList[i].title !== null) {
-            title.text(noteList[i].title);
+            title.text(noteList[i].title).removeClass('empty');
           }
           if (noteList[i].brief !== null) {
             brief.text(noteList[i].brief);
@@ -126,13 +151,13 @@ function createNotes(noteList, type) {
           info.append(title).append(brief);
           noteTab = $('<div>').addClass('note-tab').attr('noteId', noteList[i].id).attr('write_permission', noteList[i].write_permission).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn);
         } else {
-          const pinBtn = noteList[i].pinned ?
+          const pinBtn = noteList[i].pin ?
             $('<span>').text('push_pin').addClass('pinned material-icons-outlined').css('cursor', 'pointer') : null;
           const info = $('<div>').addClass('info');
           const title = $('<div>').addClass('title').attr('disabled', 'true');
           const brief = $('<div>').addClass('brief').attr('disabled', 'true');
           if (noteList[i].title !== null) {
-            title.text(noteList[i].title);
+            title.text(noteList[i].title).removeClass('empty');
           }
           if (noteList[i].brief !== null) {
             brief.text(noteList[i].brief);
@@ -164,7 +189,7 @@ function createNotes(noteList, type) {
         const title = $('<div>').addClass('title').attr('disabled', 'true');
         const brief = $('<div>').addClass('brief').attr('disabled', 'true');
         if (noteList[i].title !== null) {
-          title.text(noteList[i].title);
+          title.text(noteList[i].title).removeClass('empty');
         }
         if (noteList[i].brief !== null) {
           brief.text(noteList[i].brief);
@@ -246,7 +271,7 @@ app.fetchNotes = (type, permission = '', tag = '', search='') => {
   } else {
     $(`#${type}`).addClass('current');
   }
-  fetch(`/api/1.0/notes?profileId=${app.profileId}&&type=${type}&&permission=${permission}&&tag=${tag}&&keyword=${search}`)
+  fetch(`/api/1.0/notes?profileUrl=${app.profileUrl}&&type=${type}&&permission=${permission}&&tag=${tag}&&keyword=${search}`)
     .then(res => res.json())
     .then(({ noteList }) => {
       if (!noteList) return;
@@ -342,7 +367,7 @@ function createTags(tagList) {
 }
 
 app.fetchTags = () => {
-  fetch(`/api/1.0/tags?profileId=${app.profileId}`)
+  fetch(`/api/1.0/tags?profileUrl=${app.profileUrl}`)
     .then(res => res.json())
     .then(({ tagList }) => {
       if (!tagList) return;

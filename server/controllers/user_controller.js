@@ -4,19 +4,18 @@ const { User, Note } = require('../models');
 const response = require('../response');
 
 const renderUserPage = async (req, res, next) => {
-  const { profileId, noteUrl } = req.params;
-  if (profileId.search(/^@/) === -1) return next();
+  const { profileUrl, noteUrl } = req.params;
   const profileUser = await User.findOne({
     where: {
-      userid: profileId.replace('@', '')
+      user_url: profileUrl.replace('@', '')
     }
   });
   if (!profileUser) return response.errorNotFound(req, res);
   const profile = User.getProfile(profileUser);
-  let userId = null;
+  let userUrl = null;
   let userProfile = null;
   if (req.isAuthenticated()) {
-    userId = '@' + req.user.userid;
+    userUrl = '@' + req.user.user_url;
     userProfile = await User.getProfile(req.user);
   }
   let noteId = null;
@@ -24,8 +23,8 @@ const renderUserPage = async (req, res, next) => {
     const note = await Note.findOne({
       attributes: ['id'],
       where: {
-        ownerId: profileUser.id,
-        shortid: noteUrl
+        owner_id: profileUser.id,
+        note_url: noteUrl
       }
     });
     noteId = note ? note.id : null;
@@ -33,9 +32,9 @@ const renderUserPage = async (req, res, next) => {
   }
   res.render('note', {
     title: 'bear+',
-    profileId,
+    profileUrl,
     profile: JSON.stringify(profile),
-    userId,
+    userUrl,
     userProfile: JSON.stringify(userProfile),
     noteId,
   });
@@ -49,14 +48,14 @@ const getUserSetting = (req, res) => {
     res.json({
       id: req.user.id,
       provider: 'facebook',
-      userId: req.user.userid,
+      userUrl: req.user.user_url,
       profile: User.getProfile(req.user),
     });
   } else {
     res.json({
       id: req.user.id,
       provider: 'native',
-      userId: req.user.userid,
+      userUrl: req.user.user_url,
       profile: User.getProfile(req.user),
       email: req.user.email
     });
@@ -66,7 +65,7 @@ const getUserSetting = (req, res) => {
 const updateUserSetting = async (req, res) => {
   try{
     const resData = {};
-    const { email, shortUrl, username } = req.body;
+    const { email, userUrl, username } = req.body;
     if (email) {
       const user = await User.findOne({ where: { email } });
       if (user) {
@@ -76,13 +75,13 @@ const updateUserSetting = async (req, res) => {
         resData.email = email;
       }
     }
-    if (shortUrl) {
-      const user = await User.findOne({ where: { userid: shortUrl } });
+    if (userUrl) {
+      const user = await User.findOne({ where: { user_url: userUrl } });
       if (user) {
         resData.urlError = 'this url already in use, please try another one.';
       } else {
-        User.update({ userid: shortUrl }, { where: { id: req.user.id } });
-        resData.shortUrl = shortUrl;
+        User.update({ user_url: userUrl }, { where: { id: req.user.id } });
+        resData.userUrl = userUrl;
       }
     }
     if (username) {
@@ -127,7 +126,7 @@ const updateUserAvatar = async (req, res) => {
     res.json({ url });
   } catch (e) {
     console.log(e);
-    res.status(400).json({ error: 'update avatar faild, please try again later.' });
+    res.status(400).json({ error: 'update avatar failed, please try again later.' });
   }
 };
 

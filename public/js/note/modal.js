@@ -3,7 +3,6 @@ $('#setting-btn').click((e) => {
   fetch('/api/1.0/user/setting')
     .then(res => res.json())
     .then(body => {
-      console.log(body);
       $('#userurlHelp').text('Short URL path for your profile. Allow a-Z, 0-9 and dash.').removeClass('error').addClass('text-muted');
       $('#emailHelp').text('');
       $('#avatareHelp').text('');
@@ -11,13 +10,13 @@ $('#setting-btn').click((e) => {
       $('#setting-save').attr('disabled', true);
       if (body.provider == 'native') {
         $('#setting-username').attr('placeholder', decodeURIComponent(body.profile.name));
-        $('#setting-userurl').attr('placeholder', body.userId);
+        $('#setting-userurl').attr('placeholder', body.userUrl);
         $('#setting-email').attr('placeholder', body.email);
         $('#setting-avatar').attr('src', body.profile.photo);
         $('#change-password').css('display', 'block');
         $('#password-msg').text('');
       } else {
-        $('#setting-userurl').attr('placeholder', body.userId);
+        $('#setting-userurl').attr('placeholder', body.userUrl);
         $('#setting-username').attr('placeholder', decodeURIComponent(body.profile.name));
         $('#setting-avatar').attr('src', body.profile.biggerphoto);
         $('#email-group').css('display', 'none');
@@ -67,9 +66,9 @@ $('#photo-input').on('change', (e) => {
 
 $('#setting-save').click(() => {
   const username = $('#setting-username').val() ? $('#setting-username').val() : null;
-  const shortUrl = $('#setting-userurl').val() ? $('#setting-userurl').val() : null;
+  const userUrl = $('#setting-userurl').val() ? $('#setting-userurl').val() : null;
   const email = $('#setting-email').val() ? $('#setting-email').val() : null;
-  const data = { username, email, shortUrl };
+  const data = { username, email, userUrl };
   fetch('/api/1.0/user/setting', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -89,7 +88,7 @@ $('#setting-save').click(() => {
         $('.user-name').text(body.username);
       }
       if (body.shortUrl && !body.urlError && !body.emailError) {
-        document.location.href = `@${shortUrl}`;
+        document.location.href = `@${userUrl}`;
       } else if(!body.urlError && !body.emailError){
         $('#setting-modal').modal('toggle');
       }

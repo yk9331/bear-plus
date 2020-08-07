@@ -1,10 +1,10 @@
 <div id="menu">
   <a id="page-icon" href="/home"><img src="/img/icon.png"></a>
-  <%if (JSON.parse(profile) !== null && profileId !== userId) { %>
+  <%if (JSON.parse(profile) !== null && profileUrl !== userUrl) { %>
     <div id="profile">
       <img class="user-icon" src="<%= JSON.parse(profile).biggerphoto %>"></img>
       <div class="user-name"><%= decodeURIComponent(JSON.parse(profile).name) %></div>
-      <div class="user-id"><%= profileId %></div>
+      <div class="user-id"><%= profileUrl %></div>
     </div>
     <div id="types-container">
       <div id="normal" class="type">
@@ -44,7 +44,7 @@
   <div id="setting">
     <%if (JSON.parse(userProfile) !== null) { %>
       <div class="user-wrapper">
-        <a href="/<%= userId %>">
+        <a href="/<%= userUrl %>">
           <img class="user-icon" src="<%= JSON.parse(userProfile).photo %>"></img>
         </a>
         <div class="user-name"><%= decodeURIComponent(JSON.parse(userProfile).name) %></div>

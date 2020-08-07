@@ -46,7 +46,7 @@ app.use((req, res, next) => {
 
 // Middlewares
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Front-End Assets
@@ -65,7 +65,7 @@ app.set('view engine', 'ejs');
 // API Routes
 app.use(`/api/${API_VERSION}`, require('./server/routes/api_route'));
 
-// Main View Routes
+// View Routes
 app.use('/', require('./server/routes/view_route'));
 
 // 404 Not Found
