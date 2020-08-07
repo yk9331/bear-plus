@@ -21,6 +21,15 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 
+// Setup View Engine
+app.set('views', './public/views');
+app.engine('ejs', ejs.renderFile);
+app.set('view engine', 'ejs');
+
+// Front-End Assets
+app.use('/build', express.static(path.join(__dirname, '/public/build')));
+app.use('/img', express.static(path.join(__dirname, '/public/img')));
+
 // Setup Session
 var sessionStore = new SequelizeStore({
   db: models.sequelize
@@ -49,18 +58,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Front-End Assets
-app.use('/build', express.static(path.join(__dirname, '/public/build')));
-app.use('/img', express.static(path.join(__dirname, '/public/img')));
-
 // Setup Passport
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Setup View Engine
-app.set('views', './public/views');
-app.engine('ejs', ejs.renderFile);
-app.set('view engine', 'ejs');
 
 // API Routes
 app.use(`/api/${API_VERSION}`, require('./server/routes/api_route'));
