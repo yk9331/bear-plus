@@ -32,7 +32,7 @@ const config = {
   NOTE_MAX_STEP_HISTORY: 10000,
   NOTE_SAVE_INTERVAL: 1e4,
 
-  PWD_SALT_ROUND: 10
+  PWD_SALT_ROUND: parseInt(process.env.PWD_SALT_ROUND)
 };
 
 module.exports = config;
