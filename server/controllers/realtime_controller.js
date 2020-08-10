@@ -63,9 +63,8 @@ realtime.initSocket = (server, sessionStore) => {
 				if (result) {
 					realtime.io.to(socket.id).emit('collab updated', result);
 				}
-			} catch (e) {
-				console.log(e);
-				realtime.io.to(socket.id).emit('collab error', { status: e.status || 500, msg: e.toString() });
+			} catch (err) {
+				realtime.io.to(socket.id).emit('collab error', { status: err.status || 500, msg: err.toString() });
 			}
 		});
 
@@ -78,9 +77,8 @@ realtime.initSocket = (server, sessionStore) => {
           socket.to(currentNote).emit('collab updated', updates);
           scheduleSave(currentNote, updateNoteInfo);
 				}
-			} catch (e) {
-				console.log(e);
-				realtime.io.to(socket.id).emit('collab error', { status: e.status || 500, msg: e.toString() });
+			} catch (err) {
+				realtime.io.to(socket.id).emit('collab error', { status: err.status || 500, msg: err.toString() });
 			}
 		});
 

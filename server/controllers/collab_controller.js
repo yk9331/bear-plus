@@ -190,15 +190,9 @@ async function scheduleSave (noteId, cb) {
   const inst = await getInstance(noteId);
   if (inst.saveTimeout != null) return;
   inst.saveTimeout = setTimeout(async () => {
-    try {
-      inst.saveTimeout = null;
-      const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, inst.lastUser);
-      if (saved) {
-        cb(inst.id);
-      }
-    } catch (err) {
-      console.log(err);
-    }
+    inst.saveTimeout = null;
+    const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, inst.lastUser);
+    if (saved) { cb(inst.id);}
   }, NOTE_SAVE_INTERVAL);
 }
 

@@ -14,7 +14,6 @@ import { gapCursor } from 'prosemirror-gapcursor';
 import { baseKeymap } from 'prosemirror-commands';
 
 import { schema } from './schema';
-import { Reporter } from './reporter';
 import { commentPlugin, commentUI } from './comment';
 import { cursorsPlugin } from './cursor';
 
@@ -22,7 +21,6 @@ import { CodeBlockView, arrowHandler } from './codeBlockView';
 import { keymap } from 'prosemirror-keymap';
 const _ = require('lodash');
 import { buildMenuItems } from './menu';
-const report = new Reporter();
 let menu = buildMenuItems(schema);
 app.cursors = {};
 class State {
@@ -42,10 +40,6 @@ const arrowHandlers = keymap({
 function triggerCharacter(char, _ref) {
   var _ref$allowSpaces = _ref.allowSpaces,
       allowSpaces = _ref$allowSpaces === undefined ? false : _ref$allowSpaces;
-
-  /**
-   * @param {ResolvedPos} $position
-   */
   return function ($position) {
     if ($position.parent.type.name == 'heading') return false;
     // Matching expressions used for later
@@ -94,8 +88,7 @@ const insertText = function (text = '') {
 };
 
 class EditorConnection {
-  constructor(report, editable) {
-    this.report = report;
+  constructor(editable) {
     this.state = new State(null, 'start');
     this.request = null;
     this.backOff = 0;
@@ -177,7 +170,6 @@ class EditorConnection {
       this.poll();
     } else if (action.type == 'recover') {
       if (action.error.status && action.error.status < 500) {
-        this.report.failure(action.error);
         this.state = new State(null, null);
       } else {
         this.state = new State(this.state.edit, 'recover');
@@ -189,7 +181,7 @@ class EditorConnection {
     if (newEditState) {
       let sendable;
       if (newEditState.doc.content.size > 40000) {
-        if (this.state.comm != 'detached') this.report.failure('Document too big. Detached.');
+        if (this.state.comm != 'detached') alert('Document too big. Detached.');
         this.state = new State(newEditState, 'detached');
       } else if ((this.state.comm == 'poll' || action.requestDone) && (sendable = this.sendable(newEditState))) {
         this.state = new State(newEditState, 'send');
@@ -255,7 +247,6 @@ class EditorConnection {
   // Try to recover from an error
   recover(err) {
     let newBackOff = this.backOff ? Math.min(this.backOff * 2, 6e4) : 200;
-    if (newBackOff > 1000 && this.backOff < 1000) this.report.delay(err);
     this.backOff = newBackOff;
     setTimeout(() => {
       if (this.state.comm == 'recover') this.dispatch({type: 'poll'});
@@ -282,7 +273,7 @@ app.newEditor = function (noteId, editable) {
   if (app.connection) app.connection.close();
   app.socket.emit('open note', { noteId });
   $('#button-container').css('display', 'block');
-  app.connection = new EditorConnection(report, editable);
+  app.connection = new EditorConnection(editable);
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
   return true;
@@ -344,7 +335,10 @@ function changeNotePermission(read, write) {
     headers: {
       'content-type': 'application/json'
     },
-  });
+  }).then(res => res.json())
+    .then(({ error }) => {
+      if (error) alert(error);
+    });
 }
 
 $('#permission-read').change((e) => {
@@ -413,7 +407,6 @@ app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) =>
 });
 
 app.socket.on('collab started', (data) => {
-  app.connection.report.success();
   app.connection.backOff = 0;
   app.connection.dispatch({
     type: 'loaded',
@@ -429,7 +422,6 @@ app.socket.on('collab started', (data) => {
 
 app.socket.on('collab posted', (data) => {
   if (app.connection.state.comm == 'send') {
-    app.connection.report.success();
     app.connection.backOff = 0;
     const { steps, comments } = app.connection.sent;
     let tr = steps
@@ -442,7 +434,6 @@ app.socket.on('collab posted', (data) => {
 
 app.socket.on('collab updated', (data) => {
   if (app.connection.state.comm == 'poll' && (data.version > getVersion(app.connection.state.edit))) {
-    app.connection.report.success();
     app.connection.backOff = 0;
     if (data.steps && (data.steps.length || data.comment.length)) {
       let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
@@ -488,7 +479,6 @@ app.socket.on('collab error', (error) => {
     app.connection.backOff = 0;
     app.connection.dispatch({type: 'poll'});
   } else if (error.status == 410 || badVersion(error)) {
-    app.connection.report.failure(error);
     app.connection.dispatch({type: 'restart'});
   } else {
     app.connection.dispatch({type: 'recover', error: error});

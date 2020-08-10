@@ -22,7 +22,7 @@ $('#setting-btn').click((e) => {
         $('#email-group').css('display', 'none');
         $('#password-group').css('display', 'none');
       }
-    });
+    }).catch(error => console.error('Error:', error));
 });
 
 $('#setting-userurl').on('input', () => {
@@ -55,13 +55,12 @@ $('#photo-input').on('change', (e) => {
   fetch('/api/1.0/user/avatar', {
     method: 'POST',
     body: formData
-  })
-    .then(res => res.json())
+  }).then(res => res.json())
     .then(({ error, url }) => {
       if (error) $('#avatareHelp').text(error);
       $('#setting-avatar').attr('src', url);
       $('.user-icon').attr('src', url);
-    });
+    }).catch(error => console.error('Error:', error));
 });
 
 $('#setting-save').click(() => {
@@ -75,9 +74,11 @@ $('#setting-save').click(() => {
     headers: {
       'content-type': 'application/json'
     },
-  })
-    .then(res => res.json())
+  }).then(res => res.json())
     .then((body) => {
+      if (body.error) {
+        alert(body.error);
+      }
       if (body.urlError) {
         $('#userurlHelp').text(body.urlError).removeClass('text-muted').addClass('error');
       }
@@ -87,8 +88,8 @@ $('#setting-save').click(() => {
       if (body.username) {
         $('.user-name').text(body.username);
       }
-      if (body.shortUrl && !body.urlError && !body.emailError) {
-        document.location.href = `@${userUrl}`;
+      if (body.userUrl && !body.urlError && !body.emailError) {
+        document.location.href = `/@${userUrl}`;
       } else if(!body.urlError && !body.emailError){
         $('#setting-modal').modal('toggle');
       }
@@ -97,6 +98,7 @@ $('#setting-save').click(() => {
 });
 
 $('#change-password').click((e) => {
+  console.log('pasasword click');
   $(e.target).css('display', 'none');
   $('#password-form').css('display', 'flex');
 });
@@ -107,23 +109,21 @@ $('#password-form').on('submit', (e) => {
   const newPassword = $('#new-password').val();
   fetch('/api/1.0/user/password', {
     method: 'POST',
-    body: JSON.stringify({password,newPassword}),
+    body: JSON.stringify({ password, newPassword }),
     headers: {
       'content-type': 'application/json'
     },
-  })
-    .then(res => res.json())
-    .then((body) => {
-      if (body.error) {
+  }).then(res => res.json())
+    .then(({ error, msg }) => {
+      if (error) {
         $('#curr-password').val('');
-        $('#passwordHelp').text(body.error).removeClass('text-muted').addClass('error');
+        $('#passwordHelp').text(error).removeClass('text-muted').addClass('error');
       } else {
         $('#change-password').css('display', 'flex');
         $('#password-form').css('display', 'none');
-        $('#password-msg').text(body.msg);
+        $('#password-msg').text(msg);
       }
-    })
-    .catch (error => console.error('Error:', error));
+    }).catch(error => console.error('Error:', error));
 });
 
 $('#curr-password').on('input', (e) => {

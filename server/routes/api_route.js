@@ -1,12 +1,13 @@
 const router = require('express').Router();
 const { S3_NOTE_IMAGE_PATH, S3_USER_AVATAR_PATH } = require('../config/config');
+const response = require('../response');
 
 // S3 image upload middleware
 const { upload } = require('../util');
 const imageS3Upload = upload(S3_NOTE_IMAGE_PATH);
-const noteImageUpload = imageS3Upload.fields([{ name: 'image', maxCount: 1 }]);
+const noteImageUploader = imageS3Upload.fields([{ name: 'image', maxCount: 1 }]);
 const avatarS3Upload = upload(S3_USER_AVATAR_PATH);
-const avatarImageUpload = avatarS3Upload.fields([{ name: 'avatar', maxCount: 1 }]);
+const avatarImageUploader = avatarS3Upload.fields([{ name: 'avatar', maxCount: 1 }]);
 
 
 const {
@@ -20,7 +21,7 @@ const {
   uploadImage,
   createNewNote,
   getNotes,
-  updateNoteInfo,
+  updateNoteStatus,
   updateNoteUrl,
   updateNotePermission } = require('../controllers/note_controller');
 
@@ -44,7 +45,10 @@ router.route('/auth/facebook')
   .get(facebookSignin);
 
 router.route('/auth/facebook/callback')
-  .get(facebookCallback,signinRedirect);
+  .get(facebookCallback, signinRedirect);
+
+router.route('/auth/facebook/failed')
+  .get(response.facebookSigninError);
 
 router.route('/logout')
   .get((req, res) => {
@@ -61,13 +65,13 @@ router.route('/user/password')
   .post(updateUserPassword);
 
 router.route('/user/avatar')
-  .post(avatarImageUpload, updateUserAvatar);
+  .post(avatarImageUploader, updateUserAvatar);
 
 // Notes
 router.route('/notes')
   .get(getNotes);
 
-//Tags
+// Tags
 router.route('/tags')
   .get(getTags);
 
@@ -82,10 +86,10 @@ router.route('/note/permission')
   .patch(updateNotePermission);
 
 router.route('/note/:action')
-  .patch(updateNoteInfo);
+  .patch(updateNoteStatus);
 
 // Editor
 router.route('/editor/image')
-  .post(noteImageUpload, uploadImage);
+  .post(noteImageUploader, uploadImage);
 
 module.exports = router;

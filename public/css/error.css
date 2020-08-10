@@ -1,0 +1,53 @@
+.page-container{
+  background-color: rgb(47,50,53);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header{
+  padding-top: 30px;
+}
+
+#banner .code{
+  font-size: 7rem;
+  margin-bottom: 20px;
+  text-decoration: underline;
+  text-decoration-color: rgb(205, 86 ,84);
+}
+
+#banner h3{
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+#banner p{
+  font-size: 1.2rem;
+}
+
+#banner .home-btn{
+  margin: 100px auto auto;
+  width: 240px;
+  height: 55px;
+  border-radius: 5px;
+  line-height: 55px;
+  font-size: 1.5rem;
+  background-color: rgb(205, 86 ,84) ;
+}
+
+#banner .home-btn:hover{
+  background-color: rgb(184, 79, 78) ;
+}
+
+#banner a{
+  color: white;
+}
+
+#banner a:hover{
+  color: white;
+  text-decoration: none;
+}
+
+footer{
+  margin-top: auto;
+}

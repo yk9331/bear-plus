@@ -6,30 +6,28 @@ app.socket = io();
 app.view = null;
 
 function pinNote(e) {
-  updateNoteInfo(e, 'pin');
+  updateNoteStatus(e, 'pin');
 }
 function unpinNote(e) {
-  updateNoteInfo(e, 'unpin');
+  updateNoteStatus(e, 'unpin');
 }
 function restoreNote(e) {
-  updateNoteInfo(e, 'restore');
+  updateNoteStatus(e, 'restore');
 }
 function archiveNote(e) {
-  updateNoteInfo(e, 'archive');
+  updateNoteStatus(e, 'archive');
 }
 function trashNote(e) {
-  updateNoteInfo(e, 'trash');
+  updateNoteStatus(e, 'trash');
 }
 function deleteNote(e) {
-  updateNoteInfo(e, 'delete');
+  updateNoteStatus(e, 'delete');
 }
 
-function updateNoteInfo(e, action) {
+function updateNoteStatus(e, action) {
   const noteId = $(e.target).parent().attr('noteid');
   const data = {
     noteId: noteId,
-    currentType: app.currentType,
-    currentPermission: app.currentPermission
   };
   fetch(`/api/1.0/note/${action}`, {
     method: 'PATCH',
@@ -38,10 +36,14 @@ function updateNoteInfo(e, action) {
       'content-type': 'application/json'
     },
   })
-    .then(res => res.json())
-    .then(({ noteList }) => {
-      if (!noteList) return;
-      createNotes(noteList, app.currentType);
+    .then(res => {
+      if (res.status == 204) {
+        app.fetchNotes(app.currentType, app.currentPermission, app.currentTag, $('#search-input').val());
+        app.fetchTags();
+      } else {
+        const body = res.json();
+        alert(body.error);
+      }
     });
 }
 
@@ -59,15 +61,15 @@ $('#new-note').click(() => {
       },
     })
     .then(res => res.json())
-    .then(({ note }) => {
+    .then(({ error, note }) => {
+      if (error) return alert(error);
       if (app.view !== null) {
         app.view.destroy();
         app.view = null;
       }
-      $('.note-tab.current').removeClass('current');
       app.currentNote = note.id;
-      createNote(note);
-      app.newEditor(note.id, true);
+      app.fetchNotes(app.currentType, app.currentPermission, app.currentTag, $('#search-input').val());
+      app.fetchTags();
     });
 });
 
@@ -97,30 +99,6 @@ $('#notes').click((e) => {
     app.newEditor(noteId, false);
   }
 });
-
-function createNote(note) {
-    const pinBtn = note.pin ?
-      $('<span>').text('push_pin').addClass('pinned material-icons-outlined').click(unpinNote) :
-      $('<span>').text('push_pin').addClass('pin material-icons-outlined').click(pinNote);
-    const deleteBtn = $('<span>').text('delete_outline').addClass('delete material-icons').click(trashNote);
-    const archiveBtn = $('<span>').text('archive').addClass('archive material-icons-outlined').click(archiveNote);
-    const info = $('<div>').addClass('info');
-    const title = $('<div>').addClass('title').attr('disabled', 'true');
-    const brief = $('<div>').addClass('brief').attr('disabled', 'true');
-    if (note.title !== null) {
-      title.text(note.title).removeClass('empty');
-    }
-    if (note.brief !== null) {
-      brief.text(note.brief);
-    }
-    if (note.title == null && note.brief == null) {
-      title.text('A wonderful new note').addClass('empty');
-      brief.text('Keep calm and write something');
-    }
-    info.append(title).append(brief);
-    const noteTab = $('<div>').addClass('note-tab').attr('noteId', note.id).attr('write_permission', note.write_permission).append(pinBtn).append(info).append(deleteBtn).append(archiveBtn).addClass('current');
-    $('#notes').prepend(noteTab);
-}
 
 function createNotes(noteList, type) {
   $('#notes').empty();
@@ -273,7 +251,8 @@ app.fetchNotes = (type, permission = '', tag = '', search='') => {
   }
   fetch(`/api/1.0/notes?profileUrl=${app.profileUrl}&&type=${type}&&permission=${permission}&&tag=${tag}&&keyword=${search}`)
     .then(res => res.json())
-    .then(({ noteList }) => {
+    .then(({ error, noteList }) => {
+      if (error) return alert(error);
       if (!noteList) return;
       createNotes(noteList, type);
     });
@@ -369,7 +348,8 @@ function createTags(tagList) {
 app.fetchTags = () => {
   fetch(`/api/1.0/tags?profileUrl=${app.profileUrl}`)
     .then(res => res.json())
-    .then(({ tagList }) => {
+    .then(({ error, tagList }) => {
+      if (error) return alert(error);
       if (!tagList) return;
       createTags(tagList);
     });

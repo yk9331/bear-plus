@@ -1,15 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <%- include ('note/head') %>
-</head>
-
-<body>
-    <div>
-        <div>
-            <h1><%- code %> <%- detail %> <small><%- msg %></small></h1>
-        </div>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bear+</title>
+    <%- include ('./build/error-head') %>
+  </head>
+  <body>
+    <div class="page-container">
+      <header>
+        <nav>
+          <a id="page-icon" href="/home"><img src="/img/icon.png"></a>
+          <a href="/home#features">Features</a>
+          <p>|</p>
+          <a href="/@bear-plus">Documents</a>
+          <p>|</p>
+          <a id="signin-modal-btn" data-toggle="modal" data-target="#sign-in-modal">Sign in</a>
+        </nav>
+        <div id="banner">
+          <h1 class="code"><%- code %></h1>
+          <h3><%- detail %></h3>
+          <p><%- msg %></p>
+          <a href="/home"><p class="home-btn">Back To Home</p></a>
+        </div> 
+      </header>
+      <footer>
+        <nav>
+          <a href="/@bear-plus">Documents</a>
+          <p>|</p>
+          <a href="/@bear-plus/terms">Terms</a>
+          <p>|</p>
+          <a href="/@bear-plus/privacy">Privacy</a>
+          <p>|</p>
+          <a href="/@bear-plus/contact">Contact us</a>
+        </nav>
+        <p class="copyright">© 2020 Bear Plus. All Rights Reserved.</p>
+      </footer>
     </div>
-</body>
+    <%- include ('./includes/modal') %>
+    <%- include ('./build/home-scripts') %>
+  </body>
 </html>

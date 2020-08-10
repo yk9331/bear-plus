@@ -28,15 +28,6 @@ const upload = function (path) {
   return multer({ storage: getS3Storage(path) });
 };
 
-// Make sure to `.catch()` any errors and pass them along to the `next()`
-// middleware in the chain, in this case the error handler.
-const wrapAsync = (fn) => {
-  return function(req, res, next) {
-      fn(req, res, next).catch(next);
-  };
-};
-
 module.exports = {
   upload,
-  wrapAsync,
 };

@@ -114,7 +114,7 @@ async function register(req, res, next) {
 
 function emailAuthenticate(req, res, next) {
   if (!req.body.email || !req.body.password) return res.json({error: 'Email and password are required.'});
-  if (!validator.isEmail(req.body.email)) return res.json({error: 'Email formate not correct.'});
+  if (!validator.isEmail(req.body.email)) return res.json({error: 'Email format not correct.'});
   passport.authenticate('local',function(err, user, info) {
     if (err) return res.json({ error: 'System error, please try again later.' });
     if (!user) return res.json({ error: info });
@@ -131,7 +131,7 @@ function facebookSignin(req, res, next) {
 
 function facebookCallback(req, res, next) {
   passport.authenticate('facebook', {
-    failureRedirect: '/'
+    failureRedirect: `/api/${API_VERSION}/auth/facebook/failed`
   })(req, res, next);
 }
 

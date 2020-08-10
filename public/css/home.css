@@ -1,65 +1,9 @@
-* {
-  box-sizing: border-box;
-}
-
-body{
-  margin: 0;
-  padding: 0;
-  font-family: "Roboto";
-  font: 400 15px/24px Roboto;
-}
-
 header{
   padding-top: 30px;
   background-color: rgb(47,50,53);
-  height: 550px;
-}
-
-nav{
+  height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 60px;
-  color: white;
-}
-
-nav a,
-nav p{
-  color: white;
-  font-weight: 600;
-  margin: 0 0 0 20px;
-  font-size: 1rem;
-}
-
-nav a:first-child{
-  margin-left: 0;
-}
-
-nav a:hover,
-nav a:not([href]):hover{
-  color: white;
-  text-decoration: underline;
-  text-decoration-color: rgb(205, 86 ,84);
-}
-
-header nav #page-icon{
-  margin-right: auto;
-  height: 30px
-}
-
-header nav img{
-  height: 100%;
-}
-
-#banner{
-  color: white;
-  text-align: center;
-  margin-top: 130px;
-}
-
-#banner h1{
-  font-size: 3rem;
-  margin-bottom: 30px;
+  flex-direction: column;
 }
 
 .signup-btn{
@@ -88,7 +32,7 @@ header nav img{
 
 #demo{
   background-color: rgb(47,50,53);
-  padding-top: 0;
+  margin-top: auto;
   
 }
 #demo-img{
@@ -101,7 +45,6 @@ header nav img{
 #demo-img img{
   width: 100%;
 }
-
 
 #features{
   margin-top: 50px;
@@ -147,28 +90,10 @@ header nav img{
 }
 
 .join{
-padding: 50px;
-}
-
-footer{
-  padding: 30px 0;
-  background-color: rgb(47,50,53);
-  height: 200px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-footer .copyright{
-  margin-top: 40px;
-  color: white;
+  padding: 50px;
 }
 
 @media(min-width: 1080px){
-  header nav{
-    margin: 0 100px ;
-  }
-
   .feature-group{
     width: 50%;
   }

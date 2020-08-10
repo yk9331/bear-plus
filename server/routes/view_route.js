@@ -14,7 +14,7 @@ router.route('/')
   .get(redirecUser);
 
 router.route('/home')
-  .get((req, res) => { res.render('home');});
+  .get((req, res) => { res.render('home'); });
 
 router.route('/:profileUrl')
   .get(renderUserPage);
