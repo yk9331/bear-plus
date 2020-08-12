@@ -186,20 +186,27 @@ const leaveCollab = async function (noteId, clientID, close) {
   if (close) await inst.close();
 };
 
-async function scheduleSave (noteId, cb) {
+const scheduleSave = async function (noteId, cb) {
   const inst = await getInstance(noteId);
   if (inst.saveTimeout != null) return;
   inst.saveTimeout = setTimeout(async () => {
     inst.saveTimeout = null;
     const saved = await saveNote(inst.id, inst.doc, inst.comments, inst.lastActive, inst.lastUser);
-    if (saved) { cb(inst.id);}
+    if (saved) { cb(inst.id); }
   }, NOTE_SAVE_INTERVAL);
-}
+};
+
+const deleteInstance = async function (noteId) {
+  const inst = await getInstance(noteId);
+  if (inst.setTimeout) clearTimeout(inst.setTimeout);
+  delete instances[this.id];
+};
 
 module.exports = {
   startCollab,
   getCollab,
   postCollab,
   leaveCollab,
-  scheduleSave
+  scheduleSave,
+  deleteInstance
 };

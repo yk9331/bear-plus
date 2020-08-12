@@ -73,7 +73,9 @@ const updateNoteStatus = async (req, res) => {
         await note.update({ state: 'archive' });
         break;
       case 'delete':
-        await note.destroy();
+        await Note.destroy({
+          where: { id: noteId }
+        });
         break;
       default:
         return res.status(400).json({ error: 'Action not found' });
