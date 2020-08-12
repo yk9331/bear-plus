@@ -83,3 +83,5 @@ app.use((err, req, res, next) => {
 models.sequelize.sync().then(function () {
   server.listen(port, () => { console.log(`Listening on port: ${port}`); });
 });
+
+module.exports = app;

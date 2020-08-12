@@ -13,10 +13,10 @@ switch (NODE_ENV) {
     sequelize = new Sequelize(DEVELOPMENT_DB_URL);
     break;
   case 'production':
-    sequelize = new Sequelize(PRODUCTION_DB_URL);
+    sequelize = new Sequelize(PRODUCTION_DB_URL, { logging: false });
     break;
   case 'test':
-    sequelize = new Sequelize(TEST_DB_URL);
+    sequelize = new Sequelize(TEST_DB_URL, { logging: false });
     break;
 }
 

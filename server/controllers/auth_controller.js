@@ -86,7 +86,7 @@ async function register(req, res, next) {
   if (!req.body.email || !req.body.password || !req.body.username) {
     return res.status(400).json({ error: 'Username, email and password are required.' });
   }
-  if (!validator.isEmail(req.body.email)) return res.status(400).json({ error: 'Email formate not correct.' });
+  if (!validator.isEmail(req.body.email)) return res.status(400).json({ error: 'Email format not correct.' });
   const profile = { username: encodeURIComponent(req.body.username) };
   try {
     const [user, created] = await User.findOrCreate({
