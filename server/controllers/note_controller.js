@@ -101,7 +101,7 @@ const updateNoteUrl = async (req, res) => {
     });
     if (result) {
       await tr.commit();
-      return res.status(400).json({ error: 'duplicate' });
+      return res.status(409).json({ error: 'duplicate' });
     } else {
       await Note.update({
         note_url: noteUrl

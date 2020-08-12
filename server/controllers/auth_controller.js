@@ -84,9 +84,9 @@ passport.use(new FacebookStrategy({
 
 async function register(req, res, next) {
   if (!req.body.email || !req.body.password || !req.body.username) {
-    return res.json({ error: 'Username, email and password are required.' });
+    return res.status(400).json({ error: 'Username, email and password are required.' });
   }
-  if (!validator.isEmail(req.body.email)) return res.json({error: 'Email formate not correct.'});
+  if (!validator.isEmail(req.body.email)) return res.status(400).json({ error: 'Email formate not correct.' });
   const profile = { username: encodeURIComponent(req.body.username) };
   try {
     const [user, created] = await User.findOrCreate({
@@ -99,28 +99,28 @@ async function register(req, res, next) {
       }
     });
     if (!user) {
-      return res.json({ error: 'System error, please try again later.' });
+      return res.status(500).json({ error: 'System error, please try again later.' });
     }
     if (created) {
       return next();
     } else {
-      return res.json({ error: 'This email has been used, please try another one.' });
+      return res.status(409).json({ error: 'This email has been used, please try another one.' });
     }
   } catch (err) {
     console.log('register error:', err);
-    return res.json({ error: 'System error, please try again later.' });
+    return res.status(500).json({ error: 'System error, please try again later.' });
   }
 }
 
 function emailAuthenticate(req, res, next) {
-  if (!req.body.email || !req.body.password) return res.json({error: 'Email and password are required.'});
-  if (!validator.isEmail(req.body.email)) return res.json({error: 'Email format not correct.'});
+  if (!req.body.email || !req.body.password) return res.status(400).json({ error: 'Email and password are required.' });
+  if (!validator.isEmail(req.body.email)) return res.status(400).json({ error: 'Email format not correct.' });
   passport.authenticate('local',function(err, user, info) {
-    if (err) return res.json({ error: 'System error, please try again later.' });
-    if (!user) return res.json({ error: info });
+    if (err) return res.status(500).json({ error: 'System error, please try again later.' });
+    if (!user) return res.status(400).json({ error: info });
     req.logIn(user, function(err) {
-      if (err) { return res.json({ error: 'System error, please try again later.' });}
-      return res.json({ userUrl: user.user_url });
+      if (err) { return res.status(500).json({ error: 'System error, please try again later.' });}
+      return res.status(200).json({ userUrl: user.user_url });
     });
   })(req, res, next);
 }
