@@ -273,6 +273,7 @@ app.newEditor = function (noteId, editable) {
   if (app.connection) app.connection.close();
   app.socket.emit('open note', { noteId });
   $('#button-container').css('display', 'block');
+  if (!editable) $('#menu-btn').css('display', 'none');
   app.connection = new EditorConnection(editable);
   $('#editor').css('background-image', 'none');
   $('#sharing-status').css('display', 'none');
