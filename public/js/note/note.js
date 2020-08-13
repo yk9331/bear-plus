@@ -93,7 +93,7 @@ $('#notes').click((e) => {
     app.socket.emit('close note', { noteId: app.currentNote });
   }
   app.currentNote = noteId;
-  if (app.profileId == app.userId || (app.userId !== '' && $('.note-tab.current').attr('write_permission') == 'public')) {
+  if (app.profileUrl == app.userUrl || (app.userUrl !== '' && $('.note-tab.current').attr('write_permission') == 'public')) {
     app.newEditor(noteId, true);
   } else {
     app.newEditor(noteId, false);
@@ -225,7 +225,7 @@ function createNotes(noteList, type) {
     $('#editor').css('background-image', 'url(\'/img/note-background.png\')');
     app.view.destroy();
   } else if (inList && app.view == null) {
-    if (app.profileId == app.userId || (app.userId && $('.note-tab.current').attr('write_permission') == 'public')) {
+    if (app.profileUrl == app.userUrl || (app.userUrl && $('.note-tab.current').attr('write_permission') == 'public')) {
       app.newEditor($('.note-tab.current').attr('noteId'), true);
     } else {
       app.newEditor($('.note-tab.current').attr('noteId'), false);
@@ -260,7 +260,7 @@ app.fetchNotes = (type, permission = '', tag = '', search='') => {
 
 $('#normal').click((e) => {
   $('#search-input').val('');
-  if (app.profileId !== app.userId) {
+  if (app.profileUrl !== app.userUrl) {
     app.fetchNotes('normal');
   } else {
     if (app.currentType == 'normal' && app.currentPermission == '') return;
