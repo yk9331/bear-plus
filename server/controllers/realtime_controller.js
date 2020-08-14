@@ -88,7 +88,7 @@ realtime.initSocket = (server, sessionStore) => {
 
 		socket.on('close note', async ({ noteId }) => {
 			if (currentNote == noteId) currentNote = null;
-			if (socket.request.user) {
+			if (socket.request.user && noteId !== '' && noteId != null) {
 				socket.to(noteId).emit('delete cursor', { userId: socket.request.user.id });
 				// Close note if this user is the last user
 				const closeNote = realtime.io.sockets.adapter.rooms[noteId].length == 1 ? true : false;

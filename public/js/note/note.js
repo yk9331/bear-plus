@@ -89,7 +89,7 @@ $('#notes').click((e) => {
   $('.note-tab.current').removeClass('current');
   tab.addClass('current');
   if (app.view !== null) app.view.destroy();
-  if (app.currentNote !== null) {
+  if (app.currentNote !== '' && app.currentNote !== null) {
     app.socket.emit('close note', { noteId: app.currentNote });
   }
   app.currentNote = noteId;
