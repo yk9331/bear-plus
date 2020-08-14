@@ -4,9 +4,10 @@ const _ = require('lodash');
 const { Op } = require('sequelize');
 const { Note, User, Tag } = require('../models');
 const { updateNoteTags } = require('./tag_controller');
+const { S3_CLOUD_FRONT_URL } = require('../config/config');
 
 const uploadImage = async (req, res) => {
-  const url = req.files.image[0].location;
+  const url = `${S3_CLOUD_FRONT_URL}/${req.files.image[0].key}`;
   res.json({ url });
 };
 

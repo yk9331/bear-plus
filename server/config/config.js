@@ -22,6 +22,7 @@ const config = {
   AWS_REGION: process.env.AWS_REGION,
 
   S3_URL: process.env.S3_URL,
+  S3_CLOUD_FRONT_URL: process.env.CLOUD_FRONT_URL,
   S3_NOTE_IMAGE_PATH: 'note/image/',
   S3_USER_AVATAR_PATH: 'user/avatar/',
 
