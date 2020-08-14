@@ -429,6 +429,10 @@
   margin-top: 4px;
 }
 
+#saved-at .text{
+  width: 110px;
+}
+
 #info-panel .date{
   font-size: 40px;
   line-height: 40px;
