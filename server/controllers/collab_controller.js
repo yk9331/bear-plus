@@ -172,7 +172,7 @@ const postCollab = async function (data) {
   }
   const result = inst.addEvents(data.version, steps, data.comment, data.clientID);
   if (result == false) {
-    const err = new Error('Version note current');
+    const err = new Error('Version not current');
     err.status = 409;
     throw err;
   } else {
