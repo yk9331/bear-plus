@@ -437,11 +437,13 @@ app.socket.on('collab updated', (data) => {
     if (data.steps && (data.steps.length || data.comment.length)) {
       let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
       tr.setMeta(commentPlugin, { type: 'receive', version: data.commentVersion, events: data.comment, sent: 0 });
-      if (data.pos) {
-        app.cursors[data.pos.userId] = data.pos;
-        tr.setMeta(cursorsPlugin, Object.values(app.cursors));
-      }
       app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
+      app.connection.view.focus();
+    }
+    if (data.pos) {
+      let tr = app.connection.state.edit.tr;
+      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
+      app.connection.dispatch({ type: 'transaction', transaction: tr });
       app.connection.view.focus();
     }
   }
