@@ -102,6 +102,7 @@ class EditorConnection {
     let newEditState = null;
     if (action.type == 'loaded') {
       this.clientID = action.clientID;
+      this.clientColor = action.clientColor;
       let editState = EditorState.create({
         doc: action.doc,
         plugins: [
@@ -160,8 +161,7 @@ class EditorConnection {
         ],
         comments: action.comments
       });
-      this.state = new State(editState, 'poll');
-      this.poll();
+      this.state = new State(editState, 'wait');
     } else if (action.type == 'restart') {
       this.state = new State(null, 'start');
       this.start();
@@ -183,16 +183,15 @@ class EditorConnection {
       if (newEditState.doc.content.size > 40000) {
         if (this.state.comm != 'detached') alert('Document too big. Detached.');
         this.state = new State(newEditState, 'detached');
-      } else if ((this.state.comm == 'poll' || action.requestDone) && (sendable = this.sendable(newEditState))) {
+      } else if ( this.state.comm == 'wait' && (sendable = this.sendable(newEditState))) {
         this.state = new State(newEditState, 'send');
         this.send(newEditState, sendable);
       } else if (action.requestDone) {
-        this.state = new State(newEditState, 'poll');
+        this.state = new State(newEditState, 'wait');
       } else {
         this.state = new State(newEditState, this.state.comm);
       }
     }
-
     // Sync the editor with this.state.edit
     if (this.state.edit) {
       if (this.view)
@@ -234,13 +233,21 @@ class EditorConnection {
   send(editState, { steps, comments }) {
     this.sent = null;
     this.sent = { steps, comments };
+    const pos = {
+      userId: this.clientID,
+      profile: app.userProfile,
+      color: this.clientColor,
+      head: editState.selection.head,
+      anchor: editState.selection.anchor,
+    };
     app.socket.emit('post collab', {
       noteId: app.currentNote,
       version: getVersion(editState),
       commentVersion: commentPlugin.getState(this.state.edit).version,
       steps: steps ? steps.steps.map(s => s.toJSON()) : [],
       clientID: this.clientID,
-      comment: comments || []
+      comment: comments || [],
+      pos
     });
   }
 
@@ -434,26 +441,32 @@ app.socket.on('collab posted', (data) => {
 });
 
 app.socket.on('collab updated', (data) => {
-  if (app.connection.state.comm == 'poll' && (data.version > getVersion(app.connection.state.edit))) {
+  if ((app.connection.state.comm == 'wait' || app.connection.state.comm == 'poll') && (data.version > getVersion(app.connection.state.edit))) {
     app.connection.backOff = 0;
     if (data.steps && (data.steps.length || data.comment.length)) {
       let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
-      tr.setMeta(commentPlugin, {type: 'receive', version: data.commentVersion, events: data.comment, sent: 0});
+      app.cursors[data.pos.userId] = data.pos;
+      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
+      tr.setMeta(commentPlugin, { type: 'receive', version: data.commentVersion, events: data.comment, sent: 0 });
       app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
       app.connection.view.focus();
     }
+    // if (data.pos) {
+    //   let tr = app.connection.state.edit.tr;
+    //   app.connection.dispatch({ type: 'transaction', transaction: tr });
+    //   app.connection.view.focus();
+    // }
   }
 });
 
 app.socket.on('cursor updated', ({pos}) => {
   if (pos) {
+    if (app.cursors[pos.userId] && app.cursors[pos.userId].head == pos.head) return;
     app.cursors[pos.userId] = pos;
-    if (app.cursors) {
-      let tr = app.connection.state.edit.tr;
-      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
-      app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
-      app.connection.view.focus();
-    }
+    let tr = app.connection.state.edit.tr;
+    tr.setMeta(cursorsPlugin, Object.values(app.cursors));
+    app.connection.dispatch({ type: 'transaction', transaction: tr });
+    app.connection.view.focus();
   }
 });
 
@@ -463,7 +476,7 @@ app.socket.on('delete cursor', ({ userId }) => {
     if (app.cursors) {
       let tr = app.connection.state.edit.tr;
       tr.setMeta(cursorsPlugin, Object.values(app.cursors));
-      app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
+      app.connection.dispatch({ type: 'transaction', transaction: tr });
       app.connection.view.focus();
     }
   }

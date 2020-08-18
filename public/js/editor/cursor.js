@@ -1,6 +1,7 @@
 /* global app, _:true */
 import { Plugin } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
+var prosemirrorState = require('prosemirror-state');
 
 function createCaret(view, color, pos) {
   const profile = JSON.parse(pos.profile);
@@ -55,7 +56,7 @@ class userSelectionState {
 
   update(view, prev) {
     let state = view.state;
-    if (!this.clientId || (prev && prev.doc.eq(state.doc) &&
+    if (!this.clientId || app.connection.state.comm == 'send' || (prev && prev.doc.eq(state.doc) &&
       prev.selection.eq(state.selection))) {
       return;
     }
@@ -72,6 +73,7 @@ class userSelectionState {
 
 export const cursorsPlugin = (clientId, clientColor) => {
   return new Plugin({
+    key: new prosemirrorState.PluginKey('cursor'),
     state: {
       init() {
         return DecorationSet.empty;
