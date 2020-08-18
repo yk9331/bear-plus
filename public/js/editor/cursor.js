@@ -56,7 +56,7 @@ class userSelectionState {
 
   update(view, prev) {
     let state = view.state;
-    if (!this.clientId || (prev && prev.doc.eq(state.doc) &&
+    if (!this.clientId || app.connection.state.comm == 'send' || (prev && prev.doc.eq(state.doc) &&
       prev.selection.eq(state.selection))) {
       return;
     }

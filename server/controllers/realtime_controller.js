@@ -52,7 +52,6 @@ realtime.initSocket = (server, sessionStore) => {
 		socket.on('start collab', async ({ noteId }) => {
 			if (noteId !== currentNote) return;
 			try {
-				socket.posted = true;
 				const data = await startCollab(noteId, socket.request.user);
 				realtime.io.to(socket.id).emit('collab started', data);
 			} catch (err) {
@@ -75,29 +74,23 @@ realtime.initSocket = (server, sessionStore) => {
 
 		socket.on('post collab', async (data) => {
 			try {
-				socket.posted = false;
 				const result = await postCollab(data);
 				if (result) {
-					socket.posted = true;
 					realtime.io.to(socket.id).emit('collab posted', result);
 					const updates = await getCollab(data);
-					updates.pos = socket.pos;
+					updates.pos = data.pos;
 					socket.to(currentNote).emit('collab updated', updates);
-          scheduleSave(currentNote, updateNoteInfo);
+					scheduleSave(currentNote, updateNoteInfo);
 				}
 			} catch (err) {
 				console.log(err);
-				socket.posted = true;
 				realtime.io.to(socket.id).emit('collab error', { status: err.status || 500, msg: err.toString() });
 			}
 		});
 
 		socket.on('update cursor', async ({ pos }) => {
-			if (socket.request.user && socket.posted) {
-				socket.to(currentNote).emit('cursor updated', { pos });
-			} else {
-				socket.pos = pos;
-			}
+			if (!socket.request.user) return;
+			socket.to(currentNote).emit('cursor updated', { pos });
 		});
 
 		socket.on('close note', async ({ noteId }) => {

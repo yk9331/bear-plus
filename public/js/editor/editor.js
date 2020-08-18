@@ -102,6 +102,7 @@ class EditorConnection {
     let newEditState = null;
     if (action.type == 'loaded') {
       this.clientID = action.clientID;
+      this.clientColor = action.clientColor;
       let editState = EditorState.create({
         doc: action.doc,
         plugins: [
@@ -232,13 +233,21 @@ class EditorConnection {
   send(editState, { steps, comments }) {
     this.sent = null;
     this.sent = { steps, comments };
+    const pos = {
+      userId: this.clientID,
+      profile: app.userProfile,
+      color: this.clientColor,
+      head: editState.selection.head,
+      anchor: editState.selection.anchor,
+    };
     app.socket.emit('post collab', {
       noteId: app.currentNote,
       version: getVersion(editState),
       commentVersion: commentPlugin.getState(this.state.edit).version,
       steps: steps ? steps.steps.map(s => s.toJSON()) : [],
       clientID: this.clientID,
-      comment: comments || []
+      comment: comments || [],
+      pos
     });
   }
 
@@ -436,16 +445,17 @@ app.socket.on('collab updated', (data) => {
     app.connection.backOff = 0;
     if (data.steps && (data.steps.length || data.comment.length)) {
       let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
+      app.cursors[data.pos.userId] = data.pos;
+      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
       tr.setMeta(commentPlugin, { type: 'receive', version: data.commentVersion, events: data.comment, sent: 0 });
       app.connection.dispatch({ type: 'transaction', transaction: tr, requestDone: true });
       app.connection.view.focus();
     }
-    if (data.pos) {
-      let tr = app.connection.state.edit.tr;
-      tr.setMeta(cursorsPlugin, Object.values(app.cursors));
-      app.connection.dispatch({ type: 'transaction', transaction: tr });
-      app.connection.view.focus();
-    }
+    // if (data.pos) {
+    //   let tr = app.connection.state.edit.tr;
+    //   app.connection.dispatch({ type: 'transaction', transaction: tr });
+    //   app.connection.view.focus();
+    // }
   }
 });
 
