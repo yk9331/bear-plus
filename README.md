@@ -1,13 +1,15 @@
 # Bear+
 A web-based writing application with real-time collaboration and Markdown syntax support for crafting and sharing notes. Group and find note easily with hashtag and full text search. Inspired by Bear note and HackMD.
 
-[Homepage](https://bear-plus.yenchenkuo.com)
+[Homepage](https://bear-plus.yenchenkuo.com) [Intorduction](https://bear-plus.yenchenkuo.com/@bear-plus/features)
 
 ## Test User:
 
-**email:** bear@mail.com
+**Email:** bear@mail.com
 
 **Password:** bearplus
+
+(Public note are view only for anonymous user, please sign in to test collaboration features!)
 
 ## Table of Content
 * [Features](#Features)
@@ -91,4 +93,6 @@ Implemented Operational Transformation System by **ProseMirror Collab** Module.
 * **S3** + **CloudFront**
 
 ## Contact
-email: yenchenkuo9331@gmail.com
+Yen-Chen Kuo
+
+yenchenkuo9331@gmail.com
