@@ -6,7 +6,7 @@ const {
 
 async function createFakeUsers() {
   const userData = [];
-  for (let u of users) {
+  for (const u of users) {
     const hashPassword = await User.hashPassword(u.password);
     userData.push({
       email: u.email,

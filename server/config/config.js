@@ -6,8 +6,7 @@ const config = {
   PORT_TEST: process.env.PORT_TEST || 5001,
 
   API_VERSION: process.env.API_VERSION,
-  SERVER_URL: process.env.SERVER_URL,
-  LOCAL_SERVER_URL: process.env.LOCAL_SERVER_URL,
+  SERVER_URL: (process.env.NODE_ENV == 'development' ? process.env.LOCAL_SERVER_URL : process.env.SERVER_URL),
 
   PRODUCTION_DB_URL: process.env.PRODUCTION_DB_URL,
   DEVELOPMENT_DB_URL: process.env.DEVELOPMENT_DB_URL,

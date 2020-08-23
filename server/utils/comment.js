@@ -22,8 +22,8 @@ class Comments {
 
   mapThrough(mapping) {
     for (let i = this.comments.length - 1; i >= 0; i--) {
-      let comment = this.comments[i];
-      let from = mapping.map(comment.from, 1), to = mapping.map(comment.to, -1);
+      const comment = this.comments[i];
+      const from = mapping.map(comment.from, 1), to = mapping.map(comment.to, -1);
       if (from >= to) {
         this.comments.splice(i, 1);
       } else {
@@ -45,7 +45,7 @@ class Comments {
   }
 
   deleted(id) {
-    let found = this.index(id);
+    const found = this.index(id);
     if (found != null) {
       this.comments.splice(found, 1);
       this.version++;
@@ -55,15 +55,15 @@ class Comments {
   }
 
   eventsAfter(startIndex) {
-    let result = [];
+    const result = [];
     for (let i = startIndex; i < this.events.length; i++) {
-      let event = this.events[i];
+      const event = this.events[i];
       if (event.type == 'delete') {
         result.push(event);
       } else {
-        let found = this.index(event.id);
+        const found = this.index(event.id);
         if (found != null) {
-          let comment = this.comments[found];
+          const comment = this.comments[found];
           result.push({
             type: 'create',
             id: event.id,

@@ -36,7 +36,7 @@ class Instance {
   // Check collab version is valid
   checkVersion(version) {
     if (version < 0 || version > this.version) {
-      let err = new Error('Invalid version ' + version);
+      const err = new Error('Invalid version ' + version);
       err.status = 400;
       throw err;
     }
@@ -45,9 +45,9 @@ class Instance {
   // Get events between a given document version and the current document version.
   getEvents(version, commentVersion) {
     this.checkVersion(version);
-    let startIndex = this.steps.length - (this.version - version);
+    const startIndex = this.steps.length - (this.version - version);
     if (startIndex < 0) return false;
-    let commentStartIndex = this.comments.events.length - (this.comments.version - commentVersion);
+    const commentStartIndex = this.comments.events.length - (this.comments.version - commentVersion);
     if (commentStartIndex < 0) return false;
 
     return {steps: this.steps.slice(startIndex),
@@ -59,10 +59,11 @@ class Instance {
     this.checkVersion(version);
     this.lastUser = clientID;
     if (this.version != version) return false;
-    let doc = this.doc, maps = [];
+    let doc = this.doc;
+    const maps = [];
     for (let i = 0; i < steps.length; i++) {
       steps[i].clientID = clientID;
-      let result = steps[i].apply(doc);
+      const result = steps[i].apply(doc);
       doc = result.doc;
       maps.push(steps[i].getMap());
     }
@@ -74,7 +75,7 @@ class Instance {
 
     this.comments.mapThrough(new Mapping(maps));
     if (comments) for (let i = 0; i < comments.length; i++) {
-      let event = comments[i];
+      const event = comments[i];
       if (event.type == 'delete')
         this.comments.deleted(event.id);
       else
@@ -96,7 +97,7 @@ class Instance {
 }
 
 async function getInstance(noteId) {
-  let inst = instances[noteId] || await newInstance(noteId);
+  const inst = instances[noteId] || await newInstance(noteId);
   return inst;
 }
 

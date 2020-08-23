@@ -47,7 +47,7 @@ const updateNoteTags = async (id, tags) => {
     const note = await Note.findOne({ where: { id } });
     const oldList = await note.getTags();
     const newList = [];
-    for (let t of tags) {
+    for (const t of tags) {
       const [tag] = await Tag.findOrCreate({ where: { tag: t } });
       newList.push(tag);
     }

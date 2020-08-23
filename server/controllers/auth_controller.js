@@ -4,8 +4,7 @@ const passport = require('passport');
 const validator = require('validator');
 const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
-const { NODE_ENV, API_VERSION, LOCAL_SERVER_URL, SERVER_URL, FACEBOOK_ID, FACEBOOK_SECRET } = require('../config/config');
-const serverULR = NODE_ENV === 'development' ? LOCAL_SERVER_URL : SERVER_URL;
+const { SERVER_URL, API_VERSION, FACEBOOK_ID, FACEBOOK_SECRET } = require('../config/config');
 const { User } = require('../models');
 
 passport.serializeUser(function (user, done) {
@@ -79,7 +78,7 @@ const passportCallback = async (accessToken, refreshToken, profile, done) => {
 passport.use(new FacebookStrategy({
   clientID: FACEBOOK_ID,
   clientSecret: FACEBOOK_SECRET,
-  callbackURL: `${serverULR}/api/${API_VERSION}/auth/facebook/callback`
+  callbackURL: `${SERVER_URL}/api/${API_VERSION}/auth/facebook/callback`
 }, passportCallback));
 
 async function register(req, res, next) {

@@ -35,8 +35,9 @@ class MarkdownParseState {
   // using the current marks as styling.
   addText(text) {
     if (!text) return;
-    let nodes = this.top().content, last = nodes[nodes.length - 1];
-    let node = this.schema.text(text, this.marks), merged;
+    const nodes = this.top().content, last = nodes[nodes.length - 1];
+    const node = this.schema.text(text, this.marks);
+    let merged;
     if (last && (merged = maybeMerge(last, node))) nodes[nodes.length - 1] = merged;
     else nodes.push(node);
   }
@@ -55,8 +56,8 @@ class MarkdownParseState {
 
   parseTokens(toks) {
     for (let i = 0; i < toks.length; i++) {
-      let tok = toks[i];
-      let handler = this.tokenHandlers[tok.type];
+      const tok = toks[i];
+      const handler = this.tokenHandlers[tok.type];
       if (!handler)
         throw new Error('Token type `' + tok.type + '` not supported by Markdown parser');
       handler(this, tok);
@@ -66,7 +67,7 @@ class MarkdownParseState {
   // : (NodeType, ?Object, ?[Node]) → ?Node
   // Add a node at the current position.
   addNode(type, attrs, content) {
-    let node = type.createAndFill(attrs, content, this.marks);
+    const node = type.createAndFill(attrs, content, this.marks);
     if (!node) return null;
     this.push(node);
     return node;
@@ -82,7 +83,7 @@ class MarkdownParseState {
   // Close and return the node that is currently on top of the stack.
   closeNode() {
     if (this.marks.length) this.marks = Mark.none;
-    let info = this.stack.pop();
+    const info = this.stack.pop();
     return this.addNode(info.type, info.attrs, info.content);
   }
 }
@@ -107,11 +108,11 @@ function withoutTrailingNewline(str) {
 function noOp() {}
 
 function tokenHandlers(schema, tokens) {
-  let handlers = Object.create(null);
-  for (let type in tokens) {
-    let spec = tokens[type];
+  const handlers = Object.create(null);
+  for (const type in tokens) {
+    const spec = tokens[type];
     if (spec.block) {
-      let nodeType = schema.nodeType(spec.block);
+      const nodeType = schema.nodeType(spec.block);
       if (noOpenClose(type)) {
         handlers[type] = (state, tok) => {
           state.openNode(nodeType, attrs(spec, tok));
@@ -123,10 +124,10 @@ function tokenHandlers(schema, tokens) {
         handlers[type + '_close'] = state => state.closeNode();
       }
     } else if (spec.node) {
-      let nodeType = schema.nodeType(spec.node);
+      const nodeType = schema.nodeType(spec.node);
       handlers[type] = (state, tok) => state.addNode(nodeType, attrs(spec, tok));
     } else if (spec.mark) {
-      let markType = schema.marks[spec.mark];
+      const markType = schema.marks[spec.mark];
       if (noOpenClose(type)) {
         handlers[type] = (state, tok) => {
           state.openMark(markType.create(attrs(spec, tok)));
@@ -213,7 +214,8 @@ export class MarkdownParser {
   // and create a ProseMirror document as prescribed by this parser's
   // rules.
   parse(text) {
-    let state = new MarkdownParseState(this.schema, this.tokenHandlers), doc;
+    const state = new MarkdownParseState(this.schema, this.tokenHandlers);
+    let doc;
     state.parseTokens(this.tokenizer.parse(text, {}));
     do { doc = state.closeNode(); } while (state.stack.length);
     return doc;

@@ -15,4 +15,8 @@ rules: {
   quotes: ["error", "single"],
   semi: ["error", "always"],
   no-trailing-spaces: ["error"],
+  prefer-const: ["error", {
+        "destructuring": "any",
+        "ignoreReadBeforeAssign": false
+    }]
 }

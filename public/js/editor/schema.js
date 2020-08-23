@@ -125,7 +125,7 @@ exports.schema = new Schema({
         },
       }],
       toDOM(node) {
-        let { src, alt, title, uploadId, error } = node.attrs;
+        const { src, alt, title, uploadId, error } = node.attrs;
         return ['img', { src, alt, title, uploadId, error }];
       },
     },
@@ -201,7 +201,7 @@ exports.schema = new Schema({
         },
       }],
       toDOM(node) {
-        let {href, title} = node.attrs;
+        const {href, title} = node.attrs;
         return ['a', {href, title}, 0];
       },
     },

@@ -21,7 +21,7 @@ import { CodeBlockView, arrowHandler } from './codeBlockView';
 import { keymap } from 'prosemirror-keymap';
 const _ = require('lodash');
 import { buildMenuItems } from './menu';
-let menu = buildMenuItems(schema);
+const menu = buildMenuItems(schema);
 app.cursors = {};
 class State {
   constructor(edit, comm) {
@@ -103,7 +103,7 @@ class EditorConnection {
     if (action.type == 'loaded') {
       this.clientID = action.clientID;
       this.clientColor = action.clientColor;
-      let editState = EditorState.create({
+      const editState = EditorState.create({
         doc: action.doc,
         plugins: [
           suggestionsPlugin({
@@ -224,8 +224,8 @@ class EditorConnection {
   }
 
   sendable(editState) {
-    let steps = sendableSteps(editState);
-    let comments = commentPlugin.getState(editState).unsentEvents();
+    const steps = sendableSteps(editState);
+    const comments = commentPlugin.getState(editState).unsentEvents();
     if (steps || comments.length) return {steps, comments};
   }
 
@@ -253,7 +253,7 @@ class EditorConnection {
 
   // Try to recover from an error
   recover(err) {
-    let newBackOff = this.backOff ? Math.min(this.backOff * 2, 6e4) : 200;
+    const newBackOff = this.backOff ? Math.min(this.backOff * 2, 6e4) : 200;
     this.backOff = newBackOff;
     setTimeout(() => {
       if (this.state.comm == 'recover') this.dispatch({type: 'poll'});
@@ -271,7 +271,7 @@ class EditorConnection {
 }
 
 function repeat(val, n) {
-  let result = [];
+  const result = [];
   for (let i = 0; i < n; i++) result.push(val);
   return result;
 }
@@ -393,7 +393,7 @@ app.socket.on('update note info', ({ note, lastChangeUser, onlineUserCount }) =>
     $('.note-tab.current').children('.info').children('.brief').text(note.brief);
     if (note.Tags != [] && app.currentTag != '') {
       let exist = false;
-      for (let t of note.Tags) {
+      for (const t of note.Tags) {
         if (t.id == app.currentTag) exist = true;
       }
       if (!exist) {
@@ -432,7 +432,7 @@ app.socket.on('collab posted', (data) => {
   if (app.connection.state.comm == 'send') {
     app.connection.backOff = 0;
     const { steps, comments } = app.connection.sent;
-    let tr = steps
+    const tr = steps
       ? receiveTransaction(app.connection.state.edit, steps.steps, repeat(steps.clientID, steps.steps.length))
       : app.connection.state.edit.tr;
     tr.setMeta(commentPlugin, { type: 'receive', version: data.commentVersion, events: [], sent: comments.length });
@@ -444,7 +444,7 @@ app.socket.on('collab updated', (data) => {
   if ((app.connection.state.comm == 'wait' || app.connection.state.comm == 'poll') && (data.version > getVersion(app.connection.state.edit))) {
     app.connection.backOff = 0;
     if (data.steps && (data.steps.length || data.comment.length)) {
-      let tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
+      const tr = receiveTransaction(app.connection.state.edit, data.steps.map(j => Step.fromJSON(schema, j)), data.clientIDs);
       app.cursors[data.pos.userId] = data.pos;
       tr.setMeta(cursorsPlugin, Object.values(app.cursors));
       tr.setMeta(commentPlugin, { type: 'receive', version: data.commentVersion, events: data.comment, sent: 0 });
@@ -463,7 +463,7 @@ app.socket.on('cursor updated', ({pos}) => {
   if (pos) {
     if (app.cursors[pos.userId] && app.cursors[pos.userId].head == pos.head) return;
     app.cursors[pos.userId] = pos;
-    let tr = app.connection.state.edit.tr;
+    const tr = app.connection.state.edit.tr;
     tr.setMeta(cursorsPlugin, Object.values(app.cursors));
     app.connection.dispatch({ type: 'transaction', transaction: tr });
     app.connection.view.focus();
@@ -474,7 +474,7 @@ app.socket.on('delete cursor', ({ userId }) => {
   if (userId) {
     delete app.cursors[userId];
     if (app.cursors) {
-      let tr = app.connection.state.edit.tr;
+      const tr = app.connection.state.edit.tr;
       tr.setMeta(cursorsPlugin, Object.values(app.cursors));
       app.connection.dispatch({ type: 'transaction', transaction: tr });
       app.connection.view.focus();

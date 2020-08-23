@@ -22,7 +22,7 @@ class CommentState {
   }
 
   findComment(id) {
-    let current = this.decos.find();
+    const current = this.decos.find();
     for (let i = 0; i < current.length; i++)
       if (current[i].spec.comment.id == id) return current[i];
   }
@@ -32,7 +32,7 @@ class CommentState {
   }
 
   apply(tr) {
-    let action = tr.getMeta(commentPlugin), actionType = action && action.type;
+    const action = tr.getMeta(commentPlugin), actionType = action && action.type;
     if (!action && !tr.docChanged) return this;
     let base = this;
     if (actionType == 'receive') base = base.receive(action, tr.doc);
@@ -51,9 +51,9 @@ class CommentState {
   receive({version, events, sent}, doc) {
     let set = this.decos;
     for (let i = 0; i < events.length; i++) {
-      let event = events[i];
+      const event = events[i];
       if (event.type == 'delete') {
-        let found = this.findComment(event.id);
+        const found = this.findComment(event.id);
         if (found) set = set.remove([found]);
       } else { // "create"
         if (!this.findComment(event.id))
@@ -64,11 +64,11 @@ class CommentState {
   }
 
   unsentEvents() {
-    let result = [];
+    const result = [];
     for (let i = 0; i < this.unsent.length; i++) {
-      let action = this.unsent[i];
+      const action = this.unsent[i];
       if (action.type == 'newComment') {
-        let found = this.findComment(action.comment.id);
+        const found = this.findComment(action.comment.id);
         if (found) result.push({type: 'create', id: action.comment.id,
                                 from: found.from, to: found.to,
                                 text: action.comment.text});
@@ -80,7 +80,7 @@ class CommentState {
   }
 
   static init(config) {
-    let decos = config.comments.comments.map(c => deco(c.from, c.to, new Comment(c.text, c.id)));
+    const decos = config.comments.comments.map(c => deco(c.from, c.to, new Comment(c.text, c.id)));
     return new CommentState(config.comments.version, DecorationSet.create(config.doc, decos), []);
   }
 }
@@ -102,7 +102,7 @@ function randomID() {
 // Command for adding an annotation
 
 export const addAnnotation = function(state, dispatch) {
-  let sel = state.selection;
+  const sel = state.selection;
   if (sel.empty) return false;
   if (dispatch) {
     openPrompt({
@@ -114,7 +114,7 @@ export const addAnnotation = function(state, dispatch) {
         }),
       },
       callback(attrs) {
-        let text = attrs.comment;
+        const text = attrs.comment;
         if (text) {
           dispatch(state.tr.setMeta(commentPlugin, { type: 'newComment', from: sel.from, to: sel.to, comment: new Comment(text, randomID()) }));
           return true;
@@ -143,9 +143,9 @@ export const commentUI = function(dispatch) {
 };
 
 function commentTooltip(state, dispatch) {
-  let sel = state.selection;
+  const sel = state.selection;
   if (!sel.empty) return null;
-  let comments = commentPlugin.getState(state).commentsAt(sel.from);
+  const comments = commentPlugin.getState(state).commentsAt(sel.from);
   if (!comments.length) return null;
   return DecorationSet.create(state.doc, [Decoration.widget(sel.from, renderComments(comments, dispatch, state))]);
 }
@@ -157,7 +157,7 @@ function renderComments(comments, dispatch, state) {
 }
 
 function renderComment(comment, dispatch, state) {
-  let btn = crel('button', {class: 'commentDelete', title: 'Delete annotation'}, '×');
+  const btn = crel('button', {class: 'commentDelete', title: 'Delete annotation'}, '×');
   btn.addEventListener('click', () =>
     dispatch(state.tr.setMeta(commentPlugin, {type: 'deleteComment', comment}))
   );
