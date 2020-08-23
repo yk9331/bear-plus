@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const { S3_NOTE_IMAGE_PATH, S3_USER_AVATAR_PATH } = require('../config/config');
-const response = require('../response');
+const response = require('../utils/response');
 
 // S3 image upload middleware
-const { upload } = require('../util');
+const { upload } = require('../utils/util');
 const imageS3Upload = upload(S3_NOTE_IMAGE_PATH);
 const noteImageUploader = imageS3Upload.fields([{ name: 'image', maxCount: 1 }]);
 const avatarS3Upload = upload(S3_USER_AVATAR_PATH);

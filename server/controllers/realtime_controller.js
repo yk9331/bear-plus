@@ -3,8 +3,7 @@
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
 const { SESSION_NAME, SESSION_SECRETE } = require('../config/config');
-const { Note, Tag, User } = require('../models');
-const { startCollab, getCollab, postCollab, leaveCollab, scheduleSave } = require('./collab_controller');
+const { getCollabInfo, startCollab, getCollab, postCollab, leaveCollab, scheduleSave } = require('./collab_controller');
 const realtime = {
 	io: null,
 };
@@ -20,10 +19,9 @@ const onAuthorizeFail = (data, msg, err, accept) => {
 
 const updateNoteInfo = async (noteId) => {
 	if (realtime.io.sockets.adapter.rooms[noteId]) {
-		const note = await Note.findOne({ where: { id: noteId }, include: [{ model: Tag, attributes: ['id'] }, 'lastchange_user'] });
-		const lastChangeUser = User.getProfile(note.lastchange_user);
-		const onlineUserCount = realtime.io.sockets.adapter.rooms[noteId].length;
-		realtime.io.to(noteId).emit('update note info', {note, lastChangeUser, onlineUserCount});
+		const info = await getCollabInfo(noteId);
+		info.onlineUserCount = realtime.io.sockets.adapter.rooms[noteId].length;
+		realtime.io.to(noteId).emit('update note info', info );
 	}
 };
 

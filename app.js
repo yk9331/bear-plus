@@ -14,7 +14,7 @@ const cookieParser = require('cookie-parser');
 const ejs = require('ejs');
 
 const models = require('./server/models');
-const response = require('./server/response');
+const response = require('./server/utils/response');
 const realtime = require('./server/controllers/realtime_controller');
 
 const express = require('express');

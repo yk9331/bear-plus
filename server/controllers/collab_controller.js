@@ -7,9 +7,9 @@ require('prosemirror-replaceattrs');  // Add replaceAttrStep
 const { schema } = require('../../public/js/editor/schema');
 const { Mapping } = require('prosemirror-transform');
 
-const { Note, Author } = require('../models');
+const { Note, Tag, User, Author } = require('../models');
 const { saveNote } = require('./note_controller');
-const { Comment, Comments } = require('./comment_controller');
+const { Comment, Comments } = require('../utils/comment');
 
 const instances = Object.create(null);
 
@@ -103,6 +103,12 @@ async function getInstance(noteId) {
 async function newInstance(id) {
   const note = await Note.findOne({ where: { id }, include: ['authors'] });
   return instances[id] = new Instance(note);
+}
+
+async function getCollabInfo(noteId) {
+  const note = await Note.findOne({ where: { id: noteId }, include: [{ model: Tag, attributes: ['id'] }, 'lastchange_user'] });
+	const lastChangeUser = User.getProfile(note.lastchange_user);
+  return { note, lastChangeUser };
 }
 
 const startCollab = async function (noteId, user) {
@@ -203,6 +209,7 @@ const deleteInstance = async function (noteId) {
 };
 
 module.exports = {
+  getCollabInfo,
   startCollab,
   getCollab,
   postCollab,

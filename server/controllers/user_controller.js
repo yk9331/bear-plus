@@ -1,7 +1,7 @@
 'use strict';
 
 const { User, Note } = require('../models');
-const response = require('../response');
+const response = require('../utils/response');
 
 const renderUserPage = async (req, res, next) => {
   try {
